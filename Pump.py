@@ -1,4 +1,6 @@
 from WidgetPump import Ui_WidgetPump
+from WidgetPumpCtrl import Ui_WidgetPumpCtrl
+
 from PyQt5 import QtCore, QtGui, QtWidgets, Qt
 import serial
 from serial.tools import list_ports
@@ -84,6 +86,53 @@ class WidgetPump(QtWidgets.QWidget, Ui_WidgetPump):
 
             self.btn_get.setEnabled(True)
             self.btn_send.setEnabled(True)
+
+
+class WidgetPumpCtrl(QtWidgets.QWidget, Ui_WidgetPumpCtrl):
+    def __init__(self, parent):
+        # Initialise overloaded classes.
+        super(QtWidgets.QWidget, self).__init__()
+        super(Ui_WidgetPumpCtrl, self).__init__()
+
+        self.setupUi(self)
+
+        self.wid = parent
+
+        self.wid.protocol.updateSignal.connect(self.update_status)
+        self.btn_infuse.clicked.connect(self.button_action)
+        
+        # Update GUI.
+        self.update_status()
+
+    def update_status(self):
+        if self.wid.protocol.state == self.wid.protocol.STOPPED:
+            self.btn_infuse.setEnabled(True)
+            self.btn_infuse.setText('Infuse')
+            self.ico_state.setText('⏹')
+            self.lbl_state.setText('Stopped')
+        elif self.wid.protocol.state == self.wid.protocol.FORWARD:
+            self.btn_infuse.setEnabled(True)
+            self.btn_infuse.setText('Stop')
+            self.ico_state.setText('⏩')
+            self.lbl_state.setText('Running')
+        elif self.wid.protocol.state == self.wid.protocol.STALLED:
+            self.btn_infuse.setEnabled(True)
+            self.btn_infuse.setText('Re-infuse')
+            self.ico_state.setText('⏸')
+            self.lbl_state.setText('Stalled')
+        else:
+            self.btn_infuse.setEnabled(False)
+            self.btn_infuse.setText('Infuse')
+            self.ico_state.setText('')
+            self.lbl_state.setText('Disconnected')
+
+    def button_action(self):
+        if self.wid.protocol.state == self.wid.protocol.STOPPED:
+            self.wid.protocol.send_run()
+        elif self.wid.protocol.state == self.wid.protocol.FORWARD:
+            self.wid.protocol.send_stp()
+        elif self.wid.protocol.state == self.wid.protocol.STALLED:
+            self.wid.protocol.send_run()
 
 
 class SerialThread(QtCore.QThread):
@@ -228,12 +277,12 @@ class SerialThread(QtCore.QThread):
                     elif byte == b'\r':
                         in_packet = False
                         if requested == 1:
-                            self.recDiaSignal.emit(float(packet))
+                            self.recDiaSignal.emit(float(bytes(packet)))
                         elif requested == 2:
                             self.recRatSignal.emit(float(packet[:8]),
                                                    [b'ml/mn', b'ul/mn', b'ml/hr', b'ul/hr'].index(bytes(packet[9:])))
                         elif requested == 3:
-                            self.recTarSignal.emit(float(packet))
+                            self.recTarSignal.emit(float(bytes(packet)))
                         requested = 0
                     elif in_packet:
                         packet.extend(byte)
@@ -282,33 +331,6 @@ class SerialThread(QtCore.QThread):
             self.connection_lost(error)
 
 
-def update_button():
-    if wid.protocol.state == wid.protocol.STOPPED:
-        btn_inject.setEnabled(True)
-        btn_inject.setText('Infuse')
-        lbl_state.setText('Stopped')
-    elif wid.protocol.state == wid.protocol.FORWARD:
-        btn_inject.setEnabled(True)
-        btn_inject.setText('Stop')
-        lbl_state.setText('Running')
-    elif wid.protocol.state == wid.protocol.STALLED:
-        btn_inject.setEnabled(True)
-        btn_inject.setText('Re-infuse')
-        lbl_state.setText('Stalled')
-    else:
-        btn_inject.setEnabled(False)
-        btn_inject.setText('Infuse')
-        lbl_state.setText('Disconnected')
-
-
-def button_action():
-    if wid.protocol.state == wid.protocol.STOPPED:
-        wid.protocol.send_run()
-    elif wid.protocol.state == wid.protocol.FORWARD:
-        wid.protocol.send_stp()
-    elif wid.protocol.state == wid.protocol.STALLED:
-        wid.protocol.send_run()
-
 if __name__ == "__main__":
     import sys
     # Define app
@@ -317,20 +339,9 @@ if __name__ == "__main__":
     # Create tabwidget
     tab = QtWidgets.QTabWidget()
 
-    # Create pump widget
+    # Create pump widgets
     wid = WidgetPump()
-    wid.protocol.updateSignal.connect(update_button)
-
-    ctrl_wid = QtWidgets.QWidget()
-    gridLayout = QtWidgets.QGridLayout(ctrl_wid)
-
-    lbl_state = QtWidgets.QLabel(ctrl_wid)
-    btn_inject = QtWidgets.QPushButton(ctrl_wid)
-    btn_inject.clicked.connect(button_action)
-    update_button()
-
-    gridLayout.addWidget(lbl_state, 0, 0, 1, 1)
-    gridLayout.addWidget(btn_inject, 1, 0, 1, 1)
+    ctrl_wid = WidgetPumpCtrl(wid)
 
     # Add widgets to tab.
     tab.addTab(wid, 'Pump')
