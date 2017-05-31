@@ -20,9 +20,16 @@ class WidgetPump(QtWidgets.QWidget, Ui_WidgetPump):
 
         # Connect slots.
         self.btn_conn.clicked.connect(self.connect)
+
+        self.btn_get.clicked.connect(self.get_config)
+        self.btn_send.clicked.connect(self.send_config)
+
         self.list_port.currentItemChanged.connect(self.update_status)
         self.list_baud.currentItemChanged.connect(self.update_status)
         self.protocol.updateSignal.connect(self.update_status)
+        self.protocol.recRatSignal.connect(self.set_rate)
+        self.protocol.recDiaSignal.connect(self.spin_diameter.setValue)
+        self.protocol.recTarSignal.connect(self.spin_target.setValue)
 
         # Update GUI.
         self.update_status()
@@ -32,9 +39,26 @@ class WidgetPump(QtWidgets.QWidget, Ui_WidgetPump):
         # Open if not already open.
         if not self.protocol.state:
             self.protocol.open(self.list_port.currentItem().text(), self.list_baud.currentItem().text())
+            self.get_config()
         # Close it if open.
         else:
             self.protocol.close()
+
+    # Send request to get configuration.
+    def get_config(self):
+        self.protocol.get_rate()
+        self.protocol.get_diameter()
+        self.protocol.get_target()
+
+    # Send configuration.
+    def send_config(self):
+        self.protocol.send_rate(self.spin_rate.value(), ('MLM', 'ULM', 'MLH', 'ULH')[self.combo_units.currentIndex()])
+        self.protocol.send_diameter(self.spin_diameter.value())
+        self.protocol.send_target(self.spin_target.value())
+
+    def set_rate(self, rate, units_index):
+        self.spin_rate.setValue(rate)
+        self.combo_units.setCurrentIndex(units_index)
 
     def update_status(self):
         # Open if not already open.
@@ -46,6 +70,9 @@ class WidgetPump(QtWidgets.QWidget, Ui_WidgetPump):
             self.list_baud.setEnabled(True)
             self.label_port.setText('')
             self.label_baud.setText('')
+
+            self.btn_get.setEnabled(False)
+            self.btn_send.setEnabled(False)
         # Close it if open.
         else:
             self.btn_conn.setText('Disconnect')
@@ -55,9 +82,15 @@ class WidgetPump(QtWidgets.QWidget, Ui_WidgetPump):
             self.label_port.setText(self.list_port.currentItem().text())
             self.label_baud.setText(self.list_baud.currentItem().text())
 
+            self.btn_get.setEnabled(True)
+            self.btn_send.setEnabled(True)
+
 
 class SerialThread(QtCore.QThread):
     updateSignal = QtCore.pyqtSignal()
+    recRatSignal = QtCore.pyqtSignal([float, int])
+    recDiaSignal = QtCore.pyqtSignal([float])
+    recTarSignal = QtCore.pyqtSignal([float])
 
     # SerialThread possible states.
     DISCONNECTED = 0
@@ -117,10 +150,6 @@ class SerialThread(QtCore.QThread):
         # Close serial port.
         self.ser.close()
 
-    def is_open(self):
-        # Check if not disconnected (open).
-        return self.state is not SerialThread.DISCONNECTED
-
     """ Infuse and stop commands """
     def send_run(self):
         self._req.run = True
@@ -144,13 +173,13 @@ class SerialThread(QtCore.QThread):
 
     """ Get config commands """
     def get_diameter(self):
-        self._req.mmd = True
+        self._req.dia = True
 
     def get_rate(self):
-        self._req.mlm = True
+        self._req.rat = True
 
     def get_target(self):
-        self._req.mlt = True
+        self._req.tar = True
 
     """ Thread execution loop. """
     def run(self):
@@ -161,6 +190,7 @@ class SerialThread(QtCore.QThread):
         error = None
         packet = bytearray()
         in_packet = False
+        requested = 0
 
         # Thread loop. While connected.
         while self.ser.is_open and self.state:
@@ -197,7 +227,14 @@ class SerialThread(QtCore.QThread):
                         in_packet = False
                     elif byte == b'\r':
                         in_packet = False
-                        self.handle_packet(bytes(packet))  # make read-only copy
+                        if requested == 1:
+                            self.recDiaSignal.emit(float(packet))
+                        elif requested == 2:
+                            self.recRatSignal.emit(float(packet[:8]),
+                                                   [b'ml/mn', b'ul/mn', b'ml/hr', b'ul/hr'].index(bytes(packet[9:])))
+                        elif requested == 3:
+                            self.recTarSignal.emit(float(packet))
+                        requested = 0
                     elif in_packet:
                         packet.extend(byte)
 
@@ -220,12 +257,15 @@ class SerialThread(QtCore.QThread):
                 elif self._req.dia:
                     self.ser.write(b'DIA\r')
                     self._req.dia = False
+                    requested = 1
                 elif self._req.rat:
                     self.ser.write(b'RAT\r')
                     self._req.rat = False
+                    requested = 2
                 elif self._req.tar:
                     self.ser.write(b'TAR\r')
                     self._req.tar = False
+                    requested = 3
                 elif self.state is self.FORWARD:
                     self.ser.write(b'\r')
                 else:

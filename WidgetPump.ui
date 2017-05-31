@@ -79,6 +79,9 @@
      <property name="suffix">
       <string> ml</string>
      </property>
+     <property name="decimals">
+      <number>4</number>
+     </property>
      <property name="maximum">
       <double>1999.000000000000000</double>
      </property>
@@ -143,6 +146,9 @@
      <property name="suffix">
       <string> mm</string>
      </property>
+     <property name="decimals">
+      <number>4</number>
+     </property>
      <property name="maximum">
       <double>1999.000000000000000</double>
      </property>
@@ -155,6 +161,9 @@
        <width>97</width>
        <height>20</height>
       </size>
+     </property>
+     <property name="decimals">
+      <number>4</number>
      </property>
      <property name="maximum">
       <double>1999.000000000000000</double>
