@@ -1,7 +1,7 @@
 from WidgetPump import Ui_WidgetPump
 from WidgetPumpCtrl import Ui_WidgetPumpCtrl
 
-from PyQt5 import QtCore, QtGui, QtWidgets, Qt
+from PyQt5 import QtCore, QtWidgets
 import serial
 from serial.tools import list_ports
 
@@ -9,15 +9,14 @@ from serial.tools import list_ports
 class WidgetPump(QtWidgets.QWidget, Ui_WidgetPump):
     def __init__(self):
         # Initialise overloaded classes.
-        super(QtWidgets.QWidget, self).__init__()
-        super(Ui_WidgetPump, self).__init__()
+        super().__init__()
         self.setupUi(self)
 
         # Define serial thread.
         self.protocol = SerialThread()
 
         # List ports.
-        for t in serial.tools.list_ports.comports():
+        for t in list_ports.comports():
             self.list_port.addItem(t.device)
 
         # Connect slots.
@@ -58,10 +57,12 @@ class WidgetPump(QtWidgets.QWidget, Ui_WidgetPump):
         self.protocol.send_diameter(self.spin_diameter.value())
         self.protocol.send_target(self.spin_target.value())
 
+    # Slot for receiving both rate and units in one slot.
     def set_rate(self, rate, units_index):
         self.spin_rate.setValue(rate)
         self.combo_units.setCurrentIndex(units_index)
 
+    # Update GUI with state.
     def update_status(self):
         # Open if not already open.
         if not self.protocol.state:
@@ -91,8 +92,7 @@ class WidgetPump(QtWidgets.QWidget, Ui_WidgetPump):
 class WidgetPumpCtrl(QtWidgets.QWidget, Ui_WidgetPumpCtrl):
     def __init__(self, parent):
         # Initialise overloaded classes.
-        super(QtWidgets.QWidget, self).__init__()
-        super(Ui_WidgetPumpCtrl, self).__init__()
+        super().__init__()
 
         self.setupUi(self)
 
@@ -100,7 +100,7 @@ class WidgetPumpCtrl(QtWidgets.QWidget, Ui_WidgetPumpCtrl):
 
         self.wid.protocol.updateSignal.connect(self.update_status)
         self.btn_infuse.clicked.connect(self.button_action)
-        
+
         # Update GUI.
         self.update_status()
 
@@ -166,7 +166,7 @@ class SerialThread(QtCore.QThread):
 
     def __init__(self):
         # Init QThread class.
-        super(QtCore.QThread, self).__init__()
+        super().__init__()
 
         # Init serial port (not opened).
         self.ser = serial.Serial(parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_TWO)
@@ -267,7 +267,6 @@ class SerialThread(QtCore.QThread):
                     elif byte == b'>':
                         self.updateSignal.emit()
                         self.state = self.FORWARD
-                        self._req.run = False
                         in_packet = False
                     elif byte == b'*':
                         self.updateSignal.emit()
@@ -284,6 +283,7 @@ class SerialThread(QtCore.QThread):
                         elif requested == 3:
                             self.recTarSignal.emit(float(bytes(packet)))
                         requested = 0
+                        print(bytes(packet))
                     elif in_packet:
                         packet.extend(byte)
 
@@ -303,6 +303,7 @@ class SerialThread(QtCore.QThread):
                     self._req.mlt = False
                 elif self._req.run and self.state is not self.FORWARD:
                     self.ser.write(b'RUN\r')
+                    self._req.run = False
                 elif self._req.dia:
                     self.ser.write(b'DIA\r')
                     self._req.dia = False

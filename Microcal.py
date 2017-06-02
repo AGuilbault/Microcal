@@ -1,5 +1,5 @@
 from Pump import WidgetPump, WidgetPumpCtrl
-from PyQt5 import QtCore, QtGui, QtWidgets, Qt
+from PyQt5 import QtWidgets
 
 if __name__ == "__main__":
     import sys
@@ -13,8 +13,14 @@ if __name__ == "__main__":
     wid = WidgetPump()
     ctrl_wid = WidgetPumpCtrl(wid)
 
+    group = QtWidgets.QGroupBox()
+    group.setTitle('Syringe pump')
+    group.setLayout(ctrl_wid.layout())
+    # group.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+    group.setMaximumHeight(group.sizeHint().height())
+
     # Add widgets to tab.
-    tab.addTab(ctrl_wid, 'Main tab')
+    tab.addTab(group, 'Main tab')
     tab.addTab(wid, 'PHD2000')
 
     # Show window.

@@ -11,12 +11,13 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_WidgetPumpCtrl(object):
     def setupUi(self, WidgetPumpCtrl):
         WidgetPumpCtrl.setObjectName("WidgetPumpCtrl")
-        WidgetPumpCtrl.resize(317, 80)
+        WidgetPumpCtrl.resize(150, 80)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(WidgetPumpCtrl.sizePolicy().hasHeightForWidth())
         WidgetPumpCtrl.setSizePolicy(sizePolicy)
+        WidgetPumpCtrl.setMinimumSize(QtCore.QSize(150, 0))
         WidgetPumpCtrl.setMaximumSize(QtCore.QSize(16777215, 80))
         self.gridLayout = QtWidgets.QGridLayout(WidgetPumpCtrl)
         self.gridLayout.setObjectName("gridLayout")
