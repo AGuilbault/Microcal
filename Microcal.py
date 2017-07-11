@@ -1,4 +1,6 @@
 from Pump import WidgetPump, WidgetPumpCtrl
+from Nanovolt import WidgetNanoVolt
+
 from PyQt5 import QtWidgets
 
 if __name__ == "__main__":
@@ -13,6 +15,8 @@ if __name__ == "__main__":
     wid = WidgetPump()
     ctrl_wid = WidgetPumpCtrl(wid)
 
+    nvolt_wid = WidgetNanoVolt()
+
     group = QtWidgets.QGroupBox()
     group.setTitle('Syringe pump')
     group.setLayout(ctrl_wid.layout())
@@ -22,6 +26,7 @@ if __name__ == "__main__":
     # Add widgets to tab.
     tab.addTab(group, 'Main tab')
     tab.addTab(wid, 'PHD2000')
+    tab.addTab(nvolt_wid, '2182A')
 
     # Show window.
     tab.show()
