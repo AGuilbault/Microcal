@@ -1,81 +1,135 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Form</class>
- <widget class="QWidget" name="Form">
+ <class>WidgetPID</class>
+ <widget class="QWidget" name="WidgetPID">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
     <width>352</width>
-    <height>302</height>
+    <height>372</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
+   <item row="11" column="1">
+    <widget class="QDoubleSpinBox" name="spin_ti">
+     <property name="decimals">
+      <number>5</number>
+     </property>
+     <property name="minimum">
+      <double>-100.000000000000000</double>
+     </property>
+     <property name="maximum">
+      <double>100.000000000000000</double>
+     </property>
+    </widget>
+   </item>
+   <item row="14" column="1">
+    <spacer name="_spacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeType">
+      <enum>QSizePolicy::Expanding</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>0</width>
+       <height>0</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="10" column="1">
+    <widget class="QLabel" name="_label_3">
+     <property name="text">
+      <string>Ti</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="1">
+    <widget class="QLabel" name="_label_1">
+     <property name="text">
+      <string>Setpoint</string>
+     </property>
+    </widget>
+   </item>
+   <item row="16" column="1">
+    <widget class="QPushButton" name="btn_start">
+     <property name="text">
+      <string>Start</string>
+     </property>
+    </widget>
+   </item>
+   <item row="7" column="1">
+    <widget class="Line" name="_line">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
+   <item row="12" column="1">
+    <widget class="QLabel" name="_label_4">
+     <property name="text">
+      <string>Td</string>
+     </property>
+    </widget>
+   </item>
+   <item row="13" column="1">
+    <widget class="QDoubleSpinBox" name="spin_td">
+     <property name="decimals">
+      <number>5</number>
+     </property>
+     <property name="minimum">
+      <double>-100.000000000000000</double>
+     </property>
+     <property name="maximum">
+      <double>100.000000000000000</double>
+     </property>
+    </widget>
+   </item>
+   <item row="15" column="1">
+    <widget class="QLabel" name="label_status">
+     <property name="text">
+      <string>Off</string>
+     </property>
+    </widget>
+   </item>
    <item row="5" column="1">
-    <widget class="QDoubleSpinBox" name="doubleSpinBox">
+    <widget class="QDoubleSpinBox" name="spin_setpoint">
      <property name="suffix">
       <string> °C</string>
      </property>
     </widget>
    </item>
    <item row="8" column="1">
-    <widget class="QLabel" name="label_2">
+    <widget class="QLabel" name="_label_2">
      <property name="text">
       <string>Kc</string>
      </property>
     </widget>
    </item>
    <item row="9" column="1">
-    <widget class="QDoubleSpinBox" name="doubleSpinBox_2"/>
-   </item>
-   <item row="3" column="1">
-    <widget class="QLabel" name="label">
-     <property name="text">
-      <string>Setpoint</string>
+    <widget class="QDoubleSpinBox" name="spin_kc">
+     <property name="decimals">
+      <number>5</number>
      </property>
-    </widget>
-   </item>
-   <item row="10" column="1">
-    <widget class="QLabel" name="label_3">
-     <property name="text">
-      <string>Ti</string>
+     <property name="minimum">
+      <double>-100.000000000000000</double>
      </property>
-    </widget>
-   </item>
-   <item row="11" column="1">
-    <widget class="QDoubleSpinBox" name="doubleSpinBox_3"/>
-   </item>
-   <item row="14" column="1">
-    <spacer name="verticalSpacer">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
+     <property name="maximum">
+      <double>100.000000000000000</double>
      </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>20</width>
-       <height>40</height>
-      </size>
-     </property>
-    </spacer>
-   </item>
-   <item row="19" column="0">
-    <widget class="QPushButton" name="pushButton_2">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="text">
-      <string>Clear chart</string>
+     <property name="value">
+      <double>1.000000000000000</double>
      </property>
     </widget>
    </item>
    <item row="3" column="0" rowspan="15">
-    <widget class="QWidget" name="widget" native="true">
+    <widget class="QWidget" name="wid_graph" native="true">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
        <horstretch>0</horstretch>
@@ -84,34 +138,16 @@
      </property>
     </widget>
    </item>
-   <item row="7" column="1">
-    <widget class="Line" name="line">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
+   <item row="19" column="0">
+    <widget class="QPushButton" name="btn_clear">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
      </property>
-    </widget>
-   </item>
-   <item row="13" column="1">
-    <widget class="QDoubleSpinBox" name="doubleSpinBox_4"/>
-   </item>
-   <item row="12" column="1">
-    <widget class="QLabel" name="label_4">
      <property name="text">
-      <string>Td</string>
-     </property>
-    </widget>
-   </item>
-   <item row="15" column="1">
-    <widget class="QLabel" name="label_5">
-     <property name="text">
-      <string>Off</string>
-     </property>
-    </widget>
-   </item>
-   <item row="16" column="1">
-    <widget class="QPushButton" name="pushButton">
-     <property name="text">
-      <string>Start</string>
+      <string>Clear chart</string>
      </property>
     </widget>
    </item>

@@ -11,7 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_Form(object):
     def setupUi(self, Form):
         Form.setObjectName("Form")
-        Form.resize(614, 364)
+        Form.resize(403, 404)
         self.gridLayout = QtWidgets.QGridLayout(Form)
         self.gridLayout.setObjectName("gridLayout")
         self.groupBox = QtWidgets.QGroupBox(Form)
@@ -91,7 +91,7 @@ class Ui_Form(object):
         self.spinBox.setSuffix(_translate("Form", " ms"))
         self.pushButton_2.setText(_translate("Form", "Save"))
         self.label.setText(_translate("Form", "Interval"))
-        self.groupBox_2.setTitle(_translate("Form", "Syringe Pump"))
+        self.groupBox_2.setTitle(_translate("Form", "Syringe pump"))
         self.groupBox_3.setTitle(_translate("Form", "Status"))
         self.label_2.setText(_translate("Form", "TextLabel"))
         self.groupBox_4.setTitle(_translate("Form", "GroupBox"))

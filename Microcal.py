@@ -13,7 +13,7 @@ from Pump import WidgetPump, WidgetPumpCtrl
 
 
 def plot():
-    ''' plot some random stuff '''
+    """ plot some random stuff """
     # random data
     data = [random.random() for i in range(100)]
 
@@ -40,7 +40,7 @@ if __name__ == "__main__":
     # Create tabwidget
     tab = QtWidgets.QTabWidget()
 
-    # Create pump widgets
+    # Create widgets
     wid = WidgetPump()
     ctrl_wid = WidgetPumpCtrl(wid)
 
