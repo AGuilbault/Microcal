@@ -41,12 +41,6 @@
    </item>
    <item row="0" column="0">
     <widget class="QLabel" name="ico_state">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-       <horstretch>1</horstretch>
-       <verstretch>1</verstretch>
-      </sizepolicy>
-     </property>
      <property name="font">
       <font>
        <pointsize>20</pointsize>
@@ -59,6 +53,12 @@
    </item>
    <item row="0" column="1">
     <widget class="QLabel" name="lbl_state">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+       <horstretch>1</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
      <property name="text">
       <string>Disconnected</string>
      </property>

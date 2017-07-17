@@ -11,7 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_WidgetPump(object):
     def setupUi(self, WidgetPump):
         WidgetPump.setObjectName("WidgetPump")
-        WidgetPump.resize(315, 259)
+        WidgetPump.resize(352, 452)
         self.gridLayout = QtWidgets.QGridLayout(WidgetPump)
         self.gridLayout.setObjectName("gridLayout")
         self.label_port = QtWidgets.QLabel(WidgetPump)
