@@ -32,15 +32,17 @@ class WidgetPID(QtWidgets.QWidget, Ui_WidgetPID):
         self.data_x = list()
         self.data_y = list()
         self.data_s = list()
+        self.data_p = list()
 
         # Add axis.
         self.ax = self.figure.add_subplot(111)
 
         # Add temperature line.
         self.line_temp, = self.ax.plot(self.data_x, self.data_y, c='r', ls='-')
-
         # Add setpoint line.
         self.line_set, = self.ax.plot(self.data_x, self.data_s, c='0.5', ls=':')
+        # Add pid line.
+        self.line_pid, = self.ax.plot(self.data_x, self.data_p, c='y', ls='-')
 
         # Start a timer for PID and graph.
         self.timer = QtCore.QElapsedTimer()
@@ -51,13 +53,17 @@ class WidgetPID(QtWidgets.QWidget, Ui_WidgetPID):
                        k_p=self.spin_kc.value(),
                        t_i=self.spin_ti.value(),
                        t_d=self.spin_td.value(),
-                       max_out=100.0)
+                       max_out=60.0,
+                       set_point=self.spin_setpoint.value())
 
         # Connect slots.
         self.btn_clear.clicked.connect(self.clear_chart)
         self.btn_start.clicked.connect(self.start)
 
         self.spin_setpoint.valueChanged.connect(self.setpoint_changed)
+        self.spin_kc.valueChanged.connect(self.setpoint_changed)
+        self.spin_ti.valueChanged.connect(self.setpoint_changed)
+        self.spin_td.valueChanged.connect(self.setpoint_changed)
 
         # Init status.
         self.label_status.setText('⏹ Off')
@@ -75,28 +81,35 @@ class WidgetPID(QtWidgets.QWidget, Ui_WidgetPID):
             self.pid.clear(self.timer.elapsed())
 
     def update_pid(self):
-        reading = 10*random.random()+20
+        reading = random.random() + 24.5
         self.data_x.append(self.timer.elapsed()/1000.0)
         self.data_y.append(reading)
         if self.controlling:
             self.data_s.append(self.spin_setpoint.value())
-            self.pid.update(reading, self.timer.elapsed())
+            out = self.pid.update(reading, self.timer.elapsed())
+            self.data_p.append(out)
         else:
             self.data_s.append(np.nan)
+            self.data_p.append(np.nan)
 
         self.line_temp.set_data(self.data_x, self.data_y)
         self.line_set.set_data(self.data_x, self.data_s)
+        self.line_pid.set_data(self.data_x, self.data_p)
         self.rescale()
 
     def clear_chart(self):
         self.data_x.clear()
         self.data_y.clear()
         self.data_s.clear()
-        self.timer.restart()
+        self.data_p.clear()
+        # self.timer.restart()
         self.rescale()
 
     def setpoint_changed(self):
         self.pid.set_point(self.spin_setpoint.value())
+        self.pid.set_kp(self.spin_kc.value())
+        self.pid.set_ti(self.spin_ti.value())
+        self.pid.set_td(self.spin_td.value())
 
     def rescale(self):
         self.ax.relim()

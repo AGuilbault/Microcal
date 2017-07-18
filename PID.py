@@ -33,9 +33,9 @@ Programming Language. More information about PID Controller: http://en.wikipedia
 class PID:
     """PID Controller"""
 
-    def __init__(self, timestamp=0, k_p=0.2, t_i=0.0, t_d=0.0, max_out=100.0):
+    def __init__(self, timestamp=0, k_p=0.2, t_i=0.0, t_d=0.0, max_out=100.0, set_point=25):
 
-        self.SetPoint = 0.0
+        self.SetPoint = set_point
 
         self.Kp = k_p
         self.Ti = t_i

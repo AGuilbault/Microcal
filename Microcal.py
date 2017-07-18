@@ -11,6 +11,10 @@ from TempControl import WidgetPID
 from Nanovolt import WidgetNanoVolt
 from Pump import WidgetPump, WidgetPumpCtrl
 
+
+def change_interval():
+    timer.setInterval(main.spinBox.value())
+
 if __name__ == "__main__":
     import sys
     # Define app
@@ -47,7 +51,8 @@ if __name__ == "__main__":
 
     # Create timer.
     timer = QtCore.QTimer()
-    timer.setInterval(500)
+    timer.setInterval(main.spinBox.value())
+    main.spinBox.valueChanged.connect(change_interval)
     timer.timeout.connect(pid_wid.update_pid)
     timer.start()
 
