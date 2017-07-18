@@ -34,27 +34,50 @@ class WidgetPID(QtWidgets.QWidget, Ui_WidgetPID):
         self.line_temp, = self.ax.plot(self.data_x, self.data_y, 'r-')
 
         # Add setpoint line.
-        self.ax.axhline(y=0.5, c='0.5', ls=':')
+        self.line_set = self.ax.axhline(y=self.spin_setpoint.value(), c='0.5', ls=':')
 
         # Start a timer for graph.
         self.timer = QtCore.QElapsedTimer()
         self.timer.start()
 
         self.btn_clear.clicked.connect(self.clear_chart)
+        self.btn_start.clicked.connect(self.start)
+        self.spin_setpoint.valueChanged.connect(self.setpoint_changed)
+
+        self.label_status.setText('⏹ Off')
+        self.controlling = False
+
+    def start(self):
+        if self.controlling:
+            self.label_status.setText('⏹ Off')
+            self.btn_start.setText('Start')
+            self.controlling = False
+        else:
+            self.label_status.setText('▶ On')
+            self.btn_start.setText('Stop')
+            self.controlling = True
 
     def update_pid(self):
         self.data_x.append(self.timer.elapsed()/1000.0)
-        self.data_y.append(random.random())
+        self.data_y.append(10*random.random()+20)
         self.line_temp.set_data(self.data_x, self.data_y)
-        self.ax.relim()
-        self.ax.autoscale_view(True, True, True)
-        self.ax.autoscale(enable=True)
-        self.canvas.draw()
+        self.rescale()
 
     def clear_chart(self):
         self.data_x.clear()
         self.data_y.clear()
         self.timer.restart()
+        self.rescale()
+
+    def setpoint_changed(self):
+        self.line_set.set_ydata(self.spin_setpoint.value())
+        self.rescale()
+
+    def rescale(self):
+        self.ax.relim()
+        self.ax.autoscale_view(True, True, True)
+        self.ax.autoscale(enable=True)
+        self.canvas.draw()
 
 if __name__ == "__main__":
     import sys
@@ -70,7 +93,7 @@ if __name__ == "__main__":
     wid.setMinimumSize(wid.minimumSizeHint())
 
     timer = QtCore.QTimer()
-    timer.setInterval(1000)
+    timer.setInterval(200)
     timer.timeout.connect(wid.update_pid)
     timer.start()
 
