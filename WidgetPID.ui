@@ -16,14 +16,20 @@
   <layout class="QGridLayout" name="gridLayout">
    <item row="11" column="1">
     <widget class="QDoubleSpinBox" name="spin_ti">
+     <property name="suffix">
+      <string> ms</string>
+     </property>
      <property name="decimals">
-      <number>5</number>
+      <number>2</number>
      </property>
      <property name="minimum">
-      <double>-100.000000000000000</double>
+      <double>-1000.000000000000000</double>
      </property>
      <property name="maximum">
-      <double>100.000000000000000</double>
+      <double>1000.000000000000000</double>
+     </property>
+     <property name="value">
+      <double>86.599999999999994</double>
      </property>
     </widget>
    </item>
@@ -80,19 +86,30 @@
    </item>
    <item row="13" column="1">
     <widget class="QDoubleSpinBox" name="spin_td">
+     <property name="suffix">
+      <string> ms</string>
+     </property>
      <property name="decimals">
-      <number>5</number>
+      <number>2</number>
      </property>
      <property name="minimum">
-      <double>-100.000000000000000</double>
+      <double>-1000.000000000000000</double>
      </property>
      <property name="maximum">
-      <double>100.000000000000000</double>
+      <double>1000.000000000000000</double>
+     </property>
+     <property name="value">
+      <double>20.800000000000001</double>
      </property>
     </widget>
    </item>
    <item row="15" column="1">
     <widget class="QLabel" name="label_status">
+     <property name="font">
+      <font>
+       <pointsize>20</pointsize>
+      </font>
+     </property>
      <property name="text">
       <string>Off</string>
      </property>
@@ -121,16 +138,16 @@
    <item row="9" column="1">
     <widget class="QDoubleSpinBox" name="spin_kc">
      <property name="decimals">
-      <number>5</number>
+      <number>2</number>
      </property>
      <property name="minimum">
-      <double>-100.000000000000000</double>
+      <double>-1000.000000000000000</double>
      </property>
      <property name="maximum">
-      <double>100.000000000000000</double>
+      <double>1000.000000000000000</double>
      </property>
      <property name="value">
-      <double>1.000000000000000</double>
+      <double>22.500000000000000</double>
      </property>
     </widget>
    </item>
