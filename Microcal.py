@@ -2,7 +2,7 @@ import random
 
 import matplotlib.pyplot as plt
 import visa
-from PyQt5 import QtWidgets
+from PyQt5 import QtCore, QtWidgets
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 
@@ -44,6 +44,12 @@ if __name__ == "__main__":
 
     tab.setWindowTitle('Microcal station')
     tab.setMinimumSize(tab.minimumSizeHint())
+
+    # Create timer.
+    timer = QtCore.QTimer()
+    timer.setInterval(500)
+    timer.timeout.connect(pid_wid.update_pid)
+    timer.start()
 
     # Run GUI loop.
     sys.exit(app.exec_())

@@ -33,7 +33,7 @@ Programming Language. More information about PID Controller: http://en.wikipedia
 class PID:
     """PID Controller"""
 
-    def __init__(self, timestamp, k_p=0.2, t_i=0.0, t_d=0.0, max_out=100.0):
+    def __init__(self, timestamp=0, k_p=0.2, t_i=0.0, t_d=0.0, max_out=100.0):
 
         self.SetPoint = 0.0
 
@@ -84,6 +84,9 @@ class PID:
         self.last_i = i
 
         return pid
+
+    def set_point(self, set_p):
+        self.SetPoint = set_p
 
     def set_kp(self, proportional_gain):
         """Determines how aggressively the PID reacts to the current error with setting Proportional Gain"""
