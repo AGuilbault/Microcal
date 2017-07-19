@@ -1,9 +1,9 @@
+import serial
+from PyQt5 import QtCore, QtWidgets
+from serial.tools import list_ports
+
 from WidgetPump import Ui_WidgetPump
 from WidgetPumpCtrl import Ui_WidgetPumpCtrl
-
-from PyQt5 import QtCore, QtWidgets
-import serial
-from serial.tools import list_ports
 
 
 class WidgetPump(QtWidgets.QWidget, Ui_WidgetPump):

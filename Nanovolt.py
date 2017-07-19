@@ -1,8 +1,8 @@
-from WidgetNanoVolt import Ui_WidgetNanoVolt
-
-from PyQt5 import QtCore, QtWidgets, QtGui
-import visa
 import numpy as np
+import visa
+from PyQt5 import QtCore, QtWidgets, QtGui
+
+from WidgetNanoVolt import Ui_WidgetNanoVolt
 
 
 class WidgetNanoVolt(QtWidgets.QWidget, Ui_WidgetNanoVolt):
@@ -20,6 +20,7 @@ class WidgetNanoVolt(QtWidgets.QWidget, Ui_WidgetNanoVolt):
         # Connect slots.
         self.btn_connect.clicked.connect(self.connect)
         self.list_port.currentItemChanged.connect(self.update_status)
+        self.combo_channel.currentIndexChanged.connect(self.channel_changed)
 
         # Update GUI.
         self.update_status()
@@ -48,6 +49,14 @@ class WidgetNanoVolt(QtWidgets.QWidget, Ui_WidgetNanoVolt):
             self.btn_connect.setEnabled(True)
             self.list_port.setEnabled(False)
             self.label_port.setText(self.list_port.currentItem().text())
+
+    def channel_changed(self):
+        self.combo_range.clear()
+        self.combo_range.addItems(('100 mv', '1V', '10V', 'Autoscale'))
+        if self.combo_channel.currentIndex() == 0:
+            self.combo_range.insertItem(0, '10 mV')
+            self.combo_range.insertItem(4, '100 V')
+            self.combo_range.setCurrentIndex(0)
 
     def fetch(self):
         if self.nvolt is None:

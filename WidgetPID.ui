@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>352</width>
-    <height>372</height>
+    <height>452</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -15,6 +15,39 @@
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="11" column="1">
+    <widget class="QPushButton" name="btn_start">
+     <property name="text">
+      <string>Start</string>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="1">
+    <widget class="QLabel" name="_label_3">
+     <property name="text">
+      <string>Ti</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="1">
+    <widget class="QLabel" name="_label_2">
+     <property name="text">
+      <string>Kc</string>
+     </property>
+    </widget>
+   </item>
+   <item row="10" column="1">
+    <widget class="QLabel" name="label_status">
+     <property name="font">
+      <font>
+       <pointsize>20</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>Off</string>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="1">
     <widget class="QDoubleSpinBox" name="spin_ti">
      <property name="suffix">
       <string> ms</string>
@@ -33,58 +66,20 @@
      </property>
     </widget>
    </item>
-   <item row="14" column="1">
-    <spacer name="_spacer">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
+   <item row="1" column="1">
+    <widget class="QDoubleSpinBox" name="spin_setpoint">
+     <property name="suffix">
+      <string> °C</string>
      </property>
-     <property name="sizeType">
-      <enum>QSizePolicy::Expanding</enum>
+     <property name="maximum">
+      <double>100.000000000000000</double>
      </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>0</width>
-       <height>0</height>
-      </size>
-     </property>
-    </spacer>
-   </item>
-   <item row="10" column="1">
-    <widget class="QLabel" name="_label_3">
-     <property name="text">
-      <string>Ti</string>
+     <property name="value">
+      <double>25.000000000000000</double>
      </property>
     </widget>
    </item>
-   <item row="3" column="1">
-    <widget class="QLabel" name="_label_1">
-     <property name="text">
-      <string>Setpoint</string>
-     </property>
-    </widget>
-   </item>
-   <item row="16" column="1">
-    <widget class="QPushButton" name="btn_start">
-     <property name="text">
-      <string>Start</string>
-     </property>
-    </widget>
-   </item>
-   <item row="7" column="1">
-    <widget class="Line" name="_line">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-    </widget>
-   </item>
-   <item row="12" column="1">
-    <widget class="QLabel" name="_label_4">
-     <property name="text">
-      <string>Td</string>
-     </property>
-    </widget>
-   </item>
-   <item row="13" column="1">
+   <item row="8" column="1">
     <widget class="QDoubleSpinBox" name="spin_td">
      <property name="suffix">
       <string> ms</string>
@@ -103,39 +98,23 @@
      </property>
     </widget>
    </item>
-   <item row="15" column="1">
-    <widget class="QLabel" name="label_status">
-     <property name="font">
-      <font>
-       <pointsize>20</pointsize>
-      </font>
-     </property>
-     <property name="text">
-      <string>Off</string>
-     </property>
-    </widget>
-   </item>
-   <item row="5" column="1">
-    <widget class="QDoubleSpinBox" name="spin_setpoint">
-     <property name="suffix">
-      <string> °C</string>
-     </property>
-     <property name="maximum">
-      <double>100.000000000000000</double>
-     </property>
-     <property name="value">
-      <double>25.000000000000000</double>
-     </property>
-    </widget>
-   </item>
-   <item row="8" column="1">
-    <widget class="QLabel" name="_label_2">
-     <property name="text">
-      <string>Kc</string>
-     </property>
-    </widget>
-   </item>
    <item row="9" column="1">
+    <spacer name="_spacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeType">
+      <enum>QSizePolicy::Expanding</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>0</width>
+       <height>0</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="4" column="1">
     <widget class="QDoubleSpinBox" name="spin_kc">
      <property name="decimals">
       <number>2</number>
@@ -151,17 +130,28 @@
      </property>
     </widget>
    </item>
-   <item row="3" column="0" rowspan="15">
-    <widget class="QWidget" name="wid_graph" native="true">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
+   <item row="7" column="1">
+    <widget class="QLabel" name="_label_4">
+     <property name="text">
+      <string>Td</string>
      </property>
     </widget>
    </item>
-   <item row="19" column="0">
+   <item row="2" column="1">
+    <widget class="Line" name="_line">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="1">
+    <widget class="QLabel" name="_label_1">
+     <property name="text">
+      <string>Setpoint</string>
+     </property>
+    </widget>
+   </item>
+   <item row="12" column="0">
     <widget class="QPushButton" name="btn_clear">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -174,8 +164,21 @@
      </property>
     </widget>
    </item>
+   <item row="0" column="0" rowspan="12">
+    <widget class="QWidget" name="wid_graph" native="true">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+    </widget>
+   </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>btn_clear</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>
