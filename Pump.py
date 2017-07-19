@@ -334,13 +334,13 @@ class SerialThread(QtCore.QThread):
 
 if __name__ == "__main__":
     import sys
-    # Define app
+    # Define app.
     app = QtWidgets.QApplication(sys.argv)
 
-    # Create tabwidget
+    # Create tabwidget.
     tab = QtWidgets.QTabWidget()
 
-    # Create pump widgets
+    # Create pump widgets.
     wid = WidgetPump()
     ctrl_wid = WidgetPumpCtrl(wid)
 

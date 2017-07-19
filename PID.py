@@ -58,19 +58,20 @@ class PID:
     def update(self, feedback_value, timestamp):
         """Calculates PID value for given reference feedback"""
         error = self.SetPoint - feedback_value
-        delta_error = error - self.last_error
 
         delta_time = timestamp - self.last_time
 
         p = error
-
-        i = self.last_i + (error + self.last_error) * delta_time / (2 * self.Ti)
-
-        d = error - self.last_error
-        if delta_time > 0:
-            d = delta_error * self.Td / delta_time
+        i = self.last_i + (error + self.last_error) * delta_time / 2
+        if self.Ti != 0:
+            i /= self.Ti
+        d = (error - self.last_error) * self.Td
+        if delta_time != 0:
+            d /= delta_time
 
         pid = self.Kp * (p + i + d)
+
+        # Windup guard.
         if pid > self.windup_guard:
             pid = self.windup_guard
             i = pid - p - d

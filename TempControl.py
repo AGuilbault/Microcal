@@ -116,6 +116,7 @@ class WidgetPID(QtWidgets.QWidget, Ui_WidgetPID):
         self.ax.autoscale_view(True, True, True)
         self.ax.autoscale(enable=True)
         self.canvas.draw()
+        self.toolbar.update()
 
 if __name__ == "__main__":
     import sys

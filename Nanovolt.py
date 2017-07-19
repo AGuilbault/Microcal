@@ -1,7 +1,8 @@
 from WidgetNanoVolt import Ui_WidgetNanoVolt
 
-from PyQt5 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets, QtGui
 import visa
+import numpy as np
 
 
 class WidgetNanoVolt(QtWidgets.QWidget, Ui_WidgetNanoVolt):
@@ -48,5 +49,50 @@ class WidgetNanoVolt(QtWidgets.QWidget, Ui_WidgetNanoVolt):
             self.list_port.setEnabled(False)
             self.label_port.setText(self.list_port.currentItem().text())
 
+    def fetch(self):
+        if self.nvolt is None:
+            return np.nan
+        else:
+            return float(self.nvolt.query(':FETC?'))
+
 # nvolt.write(':TRAC:FEED:CONT NEXT')
 # print(nvolt.query(':TRAC:FEED:CONT NEXT ; :TRAC:DATA?'))
+
+if __name__ == "__main__":
+    import sys
+
+    def update_value():
+        lbl_value.setText(str(nvolt_wid.fetch()))
+        pass
+
+    # Define app
+    app = QtWidgets.QApplication(sys.argv)
+
+    # Create widgets.
+    main_wid = QtWidgets.QWidget()
+    nvolt_wid = WidgetNanoVolt(visa.ResourceManager())
+    lbl_value = QtWidgets.QLabel()
+
+    # Set font on label.
+    font = QtGui.QFont()
+    font.setPointSize(20)
+    lbl_value.setFont(font)
+
+    # Set the layout.
+    layout = QtWidgets.QVBoxLayout()
+    layout.addWidget(nvolt_wid)
+    layout.addWidget(lbl_value)
+    main_wid.setLayout(layout)
+
+    # Show window.
+    main_wid.show()
+    main_wid.setWindowTitle('2182A')
+
+    # Create timer.
+    timer = QtCore.QTimer()
+    timer.setInterval(100)
+    timer.timeout.connect(update_value)
+    timer.start()
+
+    # Run GUI loop.
+    sys.exit(app.exec_())
