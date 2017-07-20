@@ -2,10 +2,11 @@ import numpy as np
 import visa
 from PyQt5 import QtCore, QtWidgets, QtGui
 
-from WidgetNanoVolt import Ui_WidgetNanoVolt
+from WidgetNanovolt import Ui_WidgetNanovolt
+from DialogNanovolt import Ui_DialogNanovolt
 
 
-class WidgetNanoVolt(QtWidgets.QWidget, Ui_WidgetNanoVolt):
+class WidgetNanovolt(QtWidgets.QWidget, Ui_WidgetNanovolt):
     def __init__(self, res_man):
         # Initialise overloaded classes.
         super().__init__()
@@ -15,12 +16,12 @@ class WidgetNanoVolt(QtWidgets.QWidget, Ui_WidgetNanoVolt):
         self.nvolt = None
 
         # List ports.
-        self.list_port.addItems(filter(lambda k: 'GPIB' in k, self.rm.list_resources()))
+        self.combo_port.addItems(filter(lambda k: 'GPIB' in k, self.rm.list_resources()))
 
         # Connect slots.
         self.btn_connect.clicked.connect(self.connect)
-        self.list_port.currentItemChanged.connect(self.update_status)
-        self.combo_channel.currentIndexChanged.connect(self.channel_changed)
+        self.combo_port.currentIndexChanged.connect(self.update_status)
+        self.btn_config.clicked.connect(self.config)
 
         # Update GUI.
         self.update_status()
@@ -28,27 +29,52 @@ class WidgetNanoVolt(QtWidgets.QWidget, Ui_WidgetNanoVolt):
     # Open or close GPIB port.
     def connect(self):
         if self.nvolt is None:
-            self.nvolt = self.rm.open_resource(self.list_port.currentItem().text())
+            self.nvolt = self.rm.open_resource(self.combo_port.currentText())
         else:
             self.nvolt.close()
             self.nvolt = None
         self.update_status()
+
+    def config(self):
+        dialog = DialogNanovolt(self)
+        dialog.exec_()
 
     # Update GUI with state.
     def update_status(self):
         # Open if not already open.
         if self.nvolt is None:
             self.btn_connect.setText('Connect')
-            self.btn_connect.setEnabled(self.list_port.currentItem() is not None)
-            self.list_port.setEnabled(True)
-            self.label_port.setText('')
+            self.btn_connect.setEnabled(self.combo_port.currentIndex() != -1)
+            self.combo_port.setEnabled(True)
+            self.btn_config.setEnabled(False)
 
         # Close it if open.
         else:
             self.btn_connect.setText('Disconnect')
             self.btn_connect.setEnabled(True)
-            self.list_port.setEnabled(False)
-            self.label_port.setText(self.list_port.currentItem().text())
+            self.combo_port.setEnabled(False)
+            self.btn_config.setEnabled(True)
+
+    def fetch(self):
+        if self.nvolt is None:
+            self.lbl_value.setText('NA')
+            return np.nan
+        else:
+            ret = float(self.nvolt.query(':FETC?'))
+            self.lbl_value.setText(str(ret) + ' V')
+            return ret
+
+
+class DialogNanovolt(QtWidgets.QDialog, Ui_DialogNanovolt):
+    def __init__(self, parent):
+        # Initialise overloaded classes.
+        super().__init__()
+
+        self.setupUi(self)
+
+        self.wid = parent
+
+        self.combo_channel.currentIndexChanged.connect(self.channel_changed)
 
     def channel_changed(self):
         self.combo_range.clear()
@@ -58,12 +84,6 @@ class WidgetNanoVolt(QtWidgets.QWidget, Ui_WidgetNanoVolt):
             self.combo_range.insertItem(4, '100 V')
             self.combo_range.setCurrentIndex(0)
 
-    def fetch(self):
-        if self.nvolt is None:
-            return np.nan
-        else:
-            return float(self.nvolt.query(':FETC?'))
-
 if __name__ == "__main__":
     import sys
 
@@ -71,29 +91,20 @@ if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
 
     # Create widgets.
-    main_wid = QtWidgets.QWidget()
-    nvolt_wid = WidgetNanoVolt(visa.ResourceManager())
-    lbl_value = QtWidgets.QLabel()
+    wid = WidgetNanovolt(visa.ResourceManager())
 
     # Set font on label.
     font = QtGui.QFont()
     font.setPointSize(20)
-    lbl_value.setFont(font)
-
-    # Set the layout.
-    layout = QtWidgets.QVBoxLayout()
-    layout.addWidget(nvolt_wid)
-    layout.addWidget(lbl_value)
-    main_wid.setLayout(layout)
+    wid.lbl_value.setFont(font)
 
     # Show window.
-    main_wid.show()
-    main_wid.setWindowTitle('2182A')
+    wid.show()
 
     # Create timer.
     timer = QtCore.QTimer()
     timer.setInterval(100)
-    timer.timeout.connect(lambda: lbl_value.setText(str(nvolt_wid.fetch())))
+    timer.timeout.connect(lambda: wid.fetch())
     timer.start()
 
     # Run GUI loop.

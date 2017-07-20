@@ -66,8 +66,8 @@ class WidgetPump(QtWidgets.QWidget, Ui_WidgetPump):
         # Open if not already open.
         if not self.protocol.state:
             self.btn_conn.setText('Connect')
-            self.btn_conn.setEnabled(self.combo_port.currentIndex() is not None and
-                                     self.combo_baud.currentIndex() is not None)
+            self.btn_conn.setEnabled(self.combo_port.currentIndex() != -1 and
+                                     self.combo_baud.currentIndex() != -1)
             self.combo_port.setEnabled(True)
             self.combo_baud.setEnabled(True)
 
@@ -115,6 +115,7 @@ class DialogPump(QtWidgets.QDialog, Ui_DialogPump):
         self.wid = parent
 
         self.buttonBox.accepted.connect(self.send_config)
+        # self.accepted.connect(self.send_config)
 
         self.wid.protocol.recRatSignal.connect(self.set_rate)
         self.wid.protocol.recDiaSignal.connect(self.spin_diameter.setValue)

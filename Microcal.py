@@ -6,7 +6,7 @@ from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as Navigatio
 
 import WidgetMain
 from TempControl import WidgetPID
-from Nanovolt import WidgetNanoVolt
+from Nanovolt import WidgetNanovolt
 from Pump import WidgetPump
 
 
@@ -23,8 +23,7 @@ if __name__ == "__main__":
 
     # Create widgets
     wid_pump = WidgetPump()
-
-    nvolt_wid = WidgetNanoVolt(visa.ResourceManager())
+    wid_nvolt = WidgetNanovolt(visa.ResourceManager())
 
     pid_wid = WidgetPID()
 
@@ -32,12 +31,34 @@ if __name__ == "__main__":
     main = WidgetMain.Ui_Form()
     main.setupUi(main_wid)
 
-    main.widget_syringe.setLayout(wid_pump.layout())
+    main.group_pump.setLayout(wid_pump.layout())
+    main.group_nvolt.setLayout(wid_nvolt.layout())
 
     # Add widgets to tab.
     tab.addTab(main_wid, 'Main tab')
-    tab.addTab(nvolt_wid, '2182A')
     tab.addTab(pid_wid, 'PID')
+
+    # Create figure to display temperature.
+    figure = plt.figure()
+    # Create canvas widget to display figure.
+    canvas = FigureCanvas(figure)
+    # Create toolbar widget.
+    toolbar = NavigationToolbar(canvas, main.widget_2)
+    # Set the layout.
+    layout_graph = QtWidgets.QVBoxLayout()
+    layout_graph.addWidget(toolbar)
+    layout_graph.addWidget(canvas)
+    main.widget_2.setLayout(layout_graph)
+
+    # Create empty data lists for graph.
+    data_x = list()
+    data_y = list()
+
+    # Add axis.
+    ax = figure.add_subplot(111)
+
+    # Add temperature line.
+    line_temp, = ax.plot(data_x, data_y, c='b', ls='-')
 
     # Show window.
     tab.show()
@@ -45,11 +66,25 @@ if __name__ == "__main__":
     tab.setWindowTitle('Microcal station')
     tab.setMinimumSize(tab.minimumSizeHint())
 
+    elapsed = QtCore.QElapsedTimer()
+    elapsed.start()
+
     # Create timer.
     timer = QtCore.QTimer()
     timer.setInterval(main.spinBox.value())
     main.spinBox.valueChanged.connect(change_interval)
     timer.timeout.connect(pid_wid.update_pid)
+
+    def update_graph():
+        data_x.append(elapsed.elapsed()/1000)
+        data_y.append(wid_nvolt.fetch())
+        line_temp.set_data(data_x, data_y)
+        ax.relim()
+        ax.autoscale_view(True, True, True)
+        ax.autoscale(enable=True)
+        canvas.draw()
+        toolbar.update()
+    timer.timeout.connect(update_graph)
     timer.start()
 
     # Run GUI loop.
