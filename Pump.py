@@ -3,7 +3,7 @@ from PyQt5 import QtCore, QtWidgets
 from serial.tools import list_ports
 
 from WidgetPump import Ui_WidgetPump
-from WidgetPumpCtrl import Ui_WidgetPumpCtrl
+from DialogPump import Ui_DialogPump
 
 
 class WidgetPump(QtWidgets.QWidget, Ui_WidgetPump):
@@ -17,20 +17,23 @@ class WidgetPump(QtWidgets.QWidget, Ui_WidgetPump):
 
         # List ports.
         for t in list_ports.comports():
-            self.list_port.addItem(t.device)
+            self.combo_port.addItem(t.device)
 
         # Connect slots.
         self.btn_conn.clicked.connect(self.connect)
+        self.btn_config.clicked.connect(self.config)
+        self.btn_infuse.clicked.connect(self.button_action)
 
-        self.btn_get.clicked.connect(self.get_config)
-        self.btn_send.clicked.connect(self.send_config)
-
-        self.list_port.currentItemChanged.connect(self.update_status)
-        self.list_baud.currentItemChanged.connect(self.update_status)
+        self.combo_port.currentIndexChanged.connect(self.update_status)
+        self.combo_baud.currentIndexChanged.connect(self.update_status)
         self.protocol.updateSignal.connect(self.update_status)
-        self.protocol.recRatSignal.connect(self.set_rate)
-        self.protocol.recDiaSignal.connect(self.spin_diameter.setValue)
-        self.protocol.recTarSignal.connect(self.spin_target.setValue)
+
+        def updatetar(x):
+            if x < 1:
+                self.lbl_target.setText(str(x * 1000) + ' µl')
+            else:
+                self.lbl_target.setText(str(x) + ' ml')
+        self.protocol.recTarSignal.connect(updatetar)
 
         # Update GUI.
         self.update_status()
@@ -39,83 +42,58 @@ class WidgetPump(QtWidgets.QWidget, Ui_WidgetPump):
     def connect(self):
         # Open if not already open.
         if not self.protocol.state:
-            self.protocol.open(self.list_port.currentItem().text(), self.list_baud.currentItem().text())
-            self.get_config()
-        # Close it if open.
+            self.protocol.open(self.combo_port.currentText(), self.combo_baud.currentText())
+            self.protocol.get_target()
+        # Close if open.
         else:
             self.protocol.close()
 
-    # Send request to get configuration.
-    def get_config(self):
-        self.protocol.get_rate()
-        self.protocol.get_diameter()
-        self.protocol.get_target()
+    def config(self):
+        dialog = DialogPump(self)
+        if dialog.exec_():
+            self.protocol.get_target()
 
-    # Send configuration.
-    def send_config(self):
-        self.protocol.send_rate(self.spin_rate.value(), ('MLM', 'ULM', 'MLH', 'ULH')[self.combo_units.currentIndex()])
-        self.protocol.send_diameter(self.spin_diameter.value())
-        self.protocol.send_target(self.spin_target.value())
-
-    # Slot for receiving both rate and units in one slot.
-    def set_rate(self, rate, units_index):
-        self.spin_rate.setValue(rate)
-        self.combo_units.setCurrentIndex(units_index)
+    def button_action(self):
+        if self.protocol.state == self.protocol.STOPPED:
+            self.protocol.send_run()
+        elif self.protocol.state == self.protocol.FORWARD:
+            self.protocol.send_stp()
+        elif self.protocol.state == self.protocol.STALLED:
+            self.protocol.send_run()
 
     # Update GUI with state.
     def update_status(self):
         # Open if not already open.
         if not self.protocol.state:
             self.btn_conn.setText('Connect')
-            self.btn_conn.setEnabled(self.list_port.currentItem() is not None and
-                                     self.list_baud.currentItem() is not None)
-            self.list_port.setEnabled(True)
-            self.list_baud.setEnabled(True)
-            self.label_port.setText('')
-            self.label_baud.setText('')
+            self.btn_conn.setEnabled(self.combo_port.currentIndex() is not None and
+                                     self.combo_baud.currentIndex() is not None)
+            self.combo_port.setEnabled(True)
+            self.combo_baud.setEnabled(True)
 
-            self.btn_get.setEnabled(False)
-            self.btn_send.setEnabled(False)
+            self.btn_config.setEnabled(False)
+
+            self.lbl_target.setText('NA')
         # Close it if open.
         else:
             self.btn_conn.setText('Disconnect')
             self.btn_conn.setEnabled(True)
-            self.list_port.setEnabled(False)
-            self.list_baud.setEnabled(False)
-            self.label_port.setText(self.list_port.currentItem().text())
-            self.label_baud.setText(self.list_baud.currentItem().text())
+            self.combo_port.setEnabled(False)
+            self.combo_baud.setEnabled(False)
 
-            self.btn_get.setEnabled(True)
-            self.btn_send.setEnabled(True)
+            self.btn_config.setEnabled(True)
 
-
-class WidgetPumpCtrl(QtWidgets.QWidget, Ui_WidgetPumpCtrl):
-    def __init__(self, parent):
-        # Initialise overloaded classes.
-        super().__init__()
-
-        self.setupUi(self)
-
-        self.wid = parent
-
-        self.wid.protocol.updateSignal.connect(self.update_status)
-        self.btn_infuse.clicked.connect(self.button_action)
-
-        # Update GUI.
-        self.update_status()
-
-    def update_status(self):
-        if self.wid.protocol.state == self.wid.protocol.STOPPED:
+        if self.protocol.state == self.protocol.STOPPED:
             self.btn_infuse.setEnabled(True)
             self.btn_infuse.setText('Infuse')
             self.ico_state.setText('⏹')
             self.lbl_state.setText('Stopped')
-        elif self.wid.protocol.state == self.wid.protocol.FORWARD:
+        elif self.protocol.state == self.protocol.FORWARD:
             self.btn_infuse.setEnabled(True)
             self.btn_infuse.setText('Stop')
             self.ico_state.setText('⏩')
             self.lbl_state.setText('Running')
-        elif self.wid.protocol.state == self.wid.protocol.STALLED:
+        elif self.protocol.state == self.protocol.STALLED:
             self.btn_infuse.setEnabled(True)
             self.btn_infuse.setText('Re-infuse')
             self.ico_state.setText('⏸')
@@ -126,13 +104,41 @@ class WidgetPumpCtrl(QtWidgets.QWidget, Ui_WidgetPumpCtrl):
             self.ico_state.setText('')
             self.lbl_state.setText('Disconnected')
 
-    def button_action(self):
-        if self.wid.protocol.state == self.wid.protocol.STOPPED:
-            self.wid.protocol.send_run()
-        elif self.wid.protocol.state == self.wid.protocol.FORWARD:
-            self.wid.protocol.send_stp()
-        elif self.wid.protocol.state == self.wid.protocol.STALLED:
-            self.wid.protocol.send_run()
+
+class DialogPump(QtWidgets.QDialog, Ui_DialogPump):
+    def __init__(self, parent):
+        # Initialise overloaded classes.
+        super().__init__()
+
+        self.setupUi(self)
+
+        self.wid = parent
+
+        self.buttonBox.accepted.connect(self.send_config)
+
+        self.wid.protocol.recRatSignal.connect(self.set_rate)
+        self.wid.protocol.recDiaSignal.connect(self.spin_diameter.setValue)
+        self.wid.protocol.recTarSignal.connect(self.spin_target.setValue)
+
+        self.get_config()
+
+    # Send request to get configuration.
+    def get_config(self):
+        self.wid.protocol.get_rate()
+        self.wid.protocol.get_diameter()
+        self.wid.protocol.get_target()
+
+    # Send configuration.
+    def send_config(self):
+        self.wid.protocol.send_rate(self.spin_rate.value(),
+                                    ('MLM', 'ULM', 'MLH', 'ULH')[self.combo_units.currentIndex()])
+        self.wid.protocol.send_diameter(self.spin_diameter.value())
+        self.wid.protocol.send_target(self.spin_target.value())
+
+    # Slot for receiving both rate and units in one slot.
+    def set_rate(self, rate, units_index):
+        self.spin_rate.setValue(rate)
+        self.combo_units.setCurrentIndex(units_index)
 
 
 class SerialThread(QtCore.QThread):
@@ -337,22 +343,11 @@ if __name__ == "__main__":
     # Define app.
     app = QtWidgets.QApplication(sys.argv)
 
-    # Create tabwidget.
-    tab = QtWidgets.QTabWidget()
-
-    # Create pump widgets.
+    # Create pump widget.
     wid = WidgetPump()
-    ctrl_wid = WidgetPumpCtrl(wid)
-
-    # Add widgets to tab.
-    tab.addTab(wid, 'Pump')
-    tab.addTab(ctrl_wid, 'Ctrl')
 
     # Show window.
-    tab.show()
-
-    tab.setWindowTitle('PHD2000 control')
-    tab.setMinimumSize(tab.minimumSizeHint())
+    wid.show()
 
     # Run GUI loop.
     sys.exit(app.exec_())

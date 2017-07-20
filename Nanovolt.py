@@ -64,15 +64,8 @@ class WidgetNanoVolt(QtWidgets.QWidget, Ui_WidgetNanoVolt):
         else:
             return float(self.nvolt.query(':FETC?'))
 
-# nvolt.write(':TRAC:FEED:CONT NEXT')
-# print(nvolt.query(':TRAC:FEED:CONT NEXT ; :TRAC:DATA?'))
-
 if __name__ == "__main__":
     import sys
-
-    def update_value():
-        lbl_value.setText(str(nvolt_wid.fetch()))
-        pass
 
     # Define app
     app = QtWidgets.QApplication(sys.argv)
@@ -100,7 +93,7 @@ if __name__ == "__main__":
     # Create timer.
     timer = QtCore.QTimer()
     timer.setInterval(100)
-    timer.timeout.connect(update_value)
+    timer.timeout.connect(lambda: lbl_value.setText(str(nvolt_wid.fetch())))
     timer.start()
 
     # Run GUI loop.

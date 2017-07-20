@@ -1,5 +1,3 @@
-import random
-
 import matplotlib.pyplot as plt
 import visa
 from PyQt5 import QtCore, QtWidgets
@@ -9,7 +7,7 @@ from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as Navigatio
 import WidgetMain
 from TempControl import WidgetPID
 from Nanovolt import WidgetNanoVolt
-from Pump import WidgetPump, WidgetPumpCtrl
+from Pump import WidgetPump
 
 
 def change_interval():
@@ -24,8 +22,7 @@ if __name__ == "__main__":
     tab = QtWidgets.QTabWidget()
 
     # Create widgets
-    wid = WidgetPump()
-    ctrl_wid = WidgetPumpCtrl(wid)
+    wid_pump = WidgetPump()
 
     nvolt_wid = WidgetNanoVolt(visa.ResourceManager())
 
@@ -35,11 +32,10 @@ if __name__ == "__main__":
     main = WidgetMain.Ui_Form()
     main.setupUi(main_wid)
 
-    main.widget_syringe.setLayout(ctrl_wid.layout())
+    main.widget_syringe.setLayout(wid_pump.layout())
 
     # Add widgets to tab.
     tab.addTab(main_wid, 'Main tab')
-    tab.addTab(wid, 'PHD2000')
     tab.addTab(nvolt_wid, '2182A')
     tab.addTab(pid_wid, 'PID')
 
