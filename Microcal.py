@@ -38,6 +38,7 @@ if __name__ == "__main__":
     tab.addTab(main_wid, 'Main tab')
     tab.addTab(pid_wid, 'PID')
 
+    ''' Figure '''
     # Create figure to display temperature.
     figure = plt.figure()
     # Create canvas widget to display figure.
@@ -60,14 +61,9 @@ if __name__ == "__main__":
     # Add temperature line.
     line_temp, = ax.plot(data_x, data_y, c='b', ls='-')
 
-    # Show window.
-    tab.show()
-
-    tab.setWindowTitle('Microcal station')
-    tab.setMinimumSize(tab.minimumSizeHint())
-
     elapsed = QtCore.QElapsedTimer()
     elapsed.start()
+    ''' End figure '''
 
     # Create timer.
     timer = QtCore.QTimer()
@@ -86,6 +82,12 @@ if __name__ == "__main__":
         toolbar.update()
     timer.timeout.connect(update_graph)
     timer.start()
+
+    # Show window.
+    tab.show()
+
+    tab.setWindowTitle('Microcal station')
+    tab.setMinimumSize(tab.minimumSizeHint())
 
     # Run GUI loop.
     sys.exit(app.exec_())
