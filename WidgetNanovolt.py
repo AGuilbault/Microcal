@@ -11,7 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_WidgetNanovolt(object):
     def setupUi(self, WidgetNanovolt):
         WidgetNanovolt.setObjectName("WidgetNanovolt")
-        WidgetNanovolt.resize(349, 115)
+        WidgetNanovolt.resize(204, 115)
         self.gridLayout = QtWidgets.QGridLayout(WidgetNanovolt)
         self.gridLayout.setObjectName("gridLayout")
         self.btn_connect = QtWidgets.QPushButton(WidgetNanovolt)

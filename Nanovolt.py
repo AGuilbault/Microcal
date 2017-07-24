@@ -14,9 +14,11 @@ class WidgetNanovolt(QtWidgets.QWidget, Ui_WidgetNanovolt):
         self.setupUi(self)
 
         self.rm = res_man
+
+        # Init variable.
         self.nvolt = None
 
-        # List ports.
+        # List ports and filter for GPIB devices only.
         self.combo_port.addItems(filter(lambda k: 'GPIB' in k, self.rm.list_resources()))
 
         # Connect slots.
@@ -29,17 +31,21 @@ class WidgetNanovolt(QtWidgets.QWidget, Ui_WidgetNanovolt):
 
     # Open or close GPIB port.
     def connect(self):
+        # If closed, open.
         if self.nvolt is None:
+            # Open device.
             self.nvolt = self.rm.open_resource(self.combo_port.currentText())
             # Query channel.
             self.lbl_channel.setText('CH' + self.nvolt.query(':SENSE:CHANNEL?')[0] + ':')
         else:
+            # Close device.
             self.nvolt.close()
             self.nvolt = None
             self.lbl_channel.setText('CH?:')
         self.update_status()
 
     def config(self):
+        # Show configuration dialog.
         dialog = DialogNanovolt(self)
         dialog.exec_()
 
@@ -61,43 +67,49 @@ class WidgetNanovolt(QtWidgets.QWidget, Ui_WidgetNanovolt):
 
     def fetch(self):
         if self.nvolt is None:
+            # If disconnected, return NaN.
             self.lbl_value.setText('NA')
             return np.nan
         else:
-            ret = float(self.nvolt.query(':FETC?'))
-            if ret > 100 or ret < -100:
+            # If connected, fetch the value.
+            value = float(self.nvolt.query(':FETC?'))
+            if abs(value) > 100:
+                # If out of range, return NaN.
                 self.lbl_value.setText('OVERFLOW')
                 return np.nan
             else:
-                if abs(ret) < 0.001:
-                    self.lbl_value.setText("{:.3f}".format(ret * 1000000) + ' µV')
-                elif abs(ret) < 1.0:
-                    self.lbl_value.setText("{:.3f}".format(ret * 1000) + ' mV')
+                # Format value with units and return value.
+                if abs(value) < 0.001:
+                    self.lbl_value.setText("{:.3f}".format(value * 1000000) + ' µV')
+                elif abs(value) < 1.0:
+                    self.lbl_value.setText("{:.3f}".format(value * 1000) + ' mV')
                 else:
-                    self.lbl_value.setText("{:.3f}".format(ret) + ' V')
-                return ret
+                    self.lbl_value.setText("{:.3f}".format(value) + ' V')
+                return value
 
 
 class DialogNanovolt(QtWidgets.QDialog, Ui_DialogNanovolt):
     def __init__(self, parent):
         # Initialise overloaded classes.
         super().__init__()
-
         self.setupUi(self)
 
+        # Get reference to parent widget.
         self.wid = parent
 
+        # Connect slots.
         self.buttonBox.accepted.connect(self.send_config)
         self.combo_channel.currentIndexChanged.connect(self.channel_changed)
 
+        # Get the configuration from the instruments and update widgets.
         self.get_config()
 
     def get_config(self):
         # Query function and channel.
-        temp = self.wid.nvolt.query(':SENSE:FUNCTION?;:SENSE:CHANNEL?')
+        config = self.wid.nvolt.query(':SENSE:FUNCTION?;:SENSE:CHANNEL?')
 
         # Split function and channel.
-        func, chan = re.search(r'"(.*)";(\d)', temp).groups()
+        func, chan = re.search(r'"(.*)";(\d)', config).groups()
 
         # If function is not voltage, warn the user.
         if func != 'VOLT:DC':
@@ -105,26 +117,26 @@ class DialogNanovolt(QtWidgets.QDialog, Ui_DialogNanovolt):
                                           "\nMode will be changed when accepting configuration dialog.")
 
         # Set the channel in the combo box.
-        self.combo_channel.setCurrentIndex(int(chan)-1)
+        self.combo_channel.setCurrentIndex(int(chan) - 1)
 
-        # Get the configuration.
-        temp = self.wid.nvolt.query(':SENSE:VOLT:CHAN' + chan + ':RANGE?;' +
-                                    ':SENSE:VOLT:CHAN' + chan + ':RANGE:AUTO?;' +
-                                    ':SENSE:VOLT:CHAN' + chan + ':LPASS?;' +
-                                    ':SENSE:VOLT:CHAN' + chan + ':DFIL?;' +
-                                    ':SENSE:VOLT:CHAN' + chan + ':DFIL:COUNT?;' +
-                                    ':SENSE:VOLT:CHAN' + chan + ':DFIL:TCON?;' +
-                                    ':SYST:LSYNC?;' +
-                                    ':SENS:VOLT:NPLC?')
+        # Get all the configuration.
+        config = self.wid.nvolt.query(':SENSE:VOLT:CHAN' + chan + ':RANGE?;' +
+                                      ':SENSE:VOLT:CHAN' + chan + ':RANGE:AUTO?;' +
+                                      ':SENSE:VOLT:CHAN' + chan + ':LPASS?;' +
+                                      ':SENSE:VOLT:CHAN' + chan + ':DFIL?;' +
+                                      ':SENSE:VOLT:CHAN' + chan + ':DFIL:COUNT?;' +
+                                      ':SENSE:VOLT:CHAN' + chan + ':DFIL:TCON?;' +
+                                      ':SYST:LSYNC?;' +
+                                      ':SENS:VOLT:NPLC?')
 
         # Split the configuration.
-        temp = re.split(r'[;\n]', temp)
+        config = re.split(r'[;\n]', config)
 
         # Set range in the combo box.
-        if temp[1] == '1':
+        if config[1] == '1':
             self.combo_range.setCurrentIndex(self.combo_range.findText('Autoscale'))
         else:
-            rang = float(temp[0])
+            rang = float(config[0])
             if rang <= 0.01:
                 self.combo_range.setCurrentIndex(self.combo_range.findText('10 mV'))
             elif rang <= 0.1:
@@ -137,74 +149,90 @@ class DialogNanovolt(QtWidgets.QDialog, Ui_DialogNanovolt):
                 self.combo_range.setCurrentIndex(self.combo_range.findText('100 V'))
 
         # Set the filter checkboxes.
-        self.check_analog.setChecked(temp[2] == '1')
-        self.check_digital.setChecked(temp[3] == '1')
+        self.check_analog.setChecked(config[2] == '1')
+        self.check_digital.setChecked(config[3] == '1')
 
-        self.spin_filter.setValue(int(temp[4]))
+        # Set the filter count.
+        self.spin_filter.setValue(int(config[4]))
 
-        if temp[5] == 'MOV':
+        # Set the filter mode.
+        if config[5] == 'MOV':
             self.radio_moving.setChecked(True)
-        else:
+        elif config[5] == 'REP':
             self.radio_repeating.setChecked(True)
+        else:
+            QtWidgets.QMessageBox.warning(self, 'Warning', 'Invalid digital filter mode')
 
-        self.check_lsync.setChecked(temp[6] == '1')
+        # Set the line cycle synchronisation.
+        self.check_lsync.setChecked(config[6] == '1')
 
-        self.spin_rate.setValue(float(temp[7]))
+        # Set the rate.
+        self.spin_rate.setValue(float(config[7]))
 
     def send_config(self):
+        # Set channel.
         chan = str(self.combo_channel.currentIndex() + 1)
 
-        # Set channel.
+        # Send function and channel.
         self.wid.nvolt.write(':SENS:FUNC "VOLT";' +
                              ':SENS:CHAN ' + chan)
+
+        # Set label in parent widget. TODO: move to parent widget.
         self.wid.lbl_channel.setText('CH' + chan + ':')
 
-        # Set range.
+        # Send range.
         rang = self.combo_range.currentText()
         if rang == 'Autoscale':
             self.wid.nvolt.write(':SENSE:VOLT:CHAN' + chan + ':RANGE:AUTO 1')
         else:
+            # Set range to manual.
             self.wid.nvolt.write(':SENSE:VOLT:CHAN' + chan + ':RANGE:AUTO 0')
-            if rang == '10 mV':
-                self.wid.nvolt.write(':SENSE:VOLT:CHAN' + chan + ':RANGE 0.01')
-            elif rang == '100 mV':
-                self.wid.nvolt.write(':SENSE:VOLT:CHAN' + chan + ':RANGE 0.1')
-            elif rang == '1 V':
-                self.wid.nvolt.write(':SENSE:VOLT:CHAN' + chan + ':RANGE 1')
-            elif rang == '10 V':
-                self.wid.nvolt.write(':SENSE:VOLT:CHAN' + chan + ':RANGE 10')
-            elif rang == '100 V':
-                self.wid.nvolt.write(':SENSE:VOLT:CHAN' + chan + ':RANGE 100')
+            # Split value and units.
+            val, units = re.search(r'(\d*).*?(mV|V)', rang).groups()
+            if units == 'mV':
+                # Send (value / 1000) if units are mV.
+                self.wid.nvolt.write(':SENSE:VOLT:CHAN{0}:RANGE {1:0.2f}'.format(chan, float(val) / 1000))
+            elif units == 'V':
+                # Send value if units are V.
+                self.wid.nvolt.write(':SENSE:VOLT:CHAN{0}:RANGE {1}'.format(chan, val))
             else:
-                print('Invalid range!!!')
+                QtWidgets.QMessageBox.warning(self, 'Warning', 'Invalid range')
 
-        # Set line cycle synchronization.
+        # Send line cycle synchronization setting.
         self.wid.nvolt.write(':SYST:LSYNC ' + ('1' if self.check_lsync.isChecked() else '0'))
 
-        # Set rate.
+        # Send rate.
         self.wid.nvolt.write(':SENS:VOLT:NPLC ' + str(self.spin_rate.value()))
 
-        # Set analog filter.
+        # Send analog filter setting.
         self.wid.nvolt.write(':SENSE:VOLT:CHAN' + chan + ':LPASS ' + ('1' if self.check_analog.isChecked() else '0'))
 
-        # Set digital filter.
+        # Send digital filter settings.
         if self.check_digital.isChecked():
             self.wid.nvolt.write(':SENSE:VOLT:CHAN' + chan + ':DFIL 1;' +
                                  ':SENSE:VOLT:CHAN' + chan + ':DFIL:COUNT ' +
                                  str(self.spin_filter.value()) + ';' +
                                  ':SENSE:VOLT:CHAN' + chan + ':DFIL:TCON ' +
-                                 ('MOV' if self.radio_moving.isChecked() else 'REP')
-                                 )
+                                 ('MOV' if self.radio_moving.isChecked() else 'REP'))
         else:
             self.wid.nvolt.write(':SENSE:VOLT:CHAN' + chan + ':DFIL 0')
 
     def channel_changed(self):
+        # Save the selected range.
+        rang = self.combo_range.currentText()
+        # Clear all items in range combo box.
         self.combo_range.clear()
+        # Add items available for both channels.
         self.combo_range.addItems(('100 mv', '1 V', '10 V', 'Autoscale'))
+        # If selected channel is channel 1.
         if self.combo_channel.currentIndex() == 0:
+            # Add items available only for channel 1.
             self.combo_range.insertItem(0, '10 mV')
             self.combo_range.insertItem(4, '100 V')
-            self.combo_range.setCurrentIndex(0)
+        # Set range back to the value it was, if possible.
+        rang = self.combo_range.findText(rang)
+        self.combo_range.setCurrentIndex(rang if rang != -1 else 0)
+
 
 if __name__ == "__main__":
     import sys
@@ -212,10 +240,10 @@ if __name__ == "__main__":
     # Define app
     app = QtWidgets.QApplication(sys.argv)
 
-    # Create widgets.
+    # Create widget.
     wid = WidgetNanovolt(visa.ResourceManager())
 
-    # Set font on label.
+    # Change label font. (Bigger for standalone app)
     font = QtGui.QFont()
     font.setPointSize(20)
     font.setUnderline(True)
@@ -224,7 +252,7 @@ if __name__ == "__main__":
     # Show window.
     wid.show()
 
-    # Create timer.
+    # Create timer to fetch data and update label every 500 ms.
     timer = QtCore.QTimer()
     timer.setInterval(500)
     timer.timeout.connect(lambda: wid.fetch())

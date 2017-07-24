@@ -1,13 +1,13 @@
-import numpy as np
+import random
+import nidaqmx
 import matplotlib.pyplot as plt
+import numpy as np
 from PyQt5 import QtWidgets, QtCore
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 
-from WidgetPID import Ui_WidgetPID
-
-import random
 from PID import PID
+from WidgetPID import Ui_WidgetPID
 
 
 class WidgetPID(QtWidgets.QWidget, Ui_WidgetPID):
@@ -68,6 +68,10 @@ class WidgetPID(QtWidgets.QWidget, Ui_WidgetPID):
         # Init status.
         self.label_status.setText('⏹ Off')
         self.controlling = False
+
+        latask = nidaqmx.system.storage.persisted_task.PersistedTask('Temper')
+        latache = latask.load()
+        latache.read()
 
     def start(self):
         if self.controlling:
