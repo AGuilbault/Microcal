@@ -31,9 +31,12 @@ class WidgetNanovolt(QtWidgets.QWidget, Ui_WidgetNanovolt):
     def connect(self):
         if self.nvolt is None:
             self.nvolt = self.rm.open_resource(self.combo_port.currentText())
+            # Query channel.
+            self.lbl_channel.setText('CH' + self.nvolt.query(':SENSE:CHANNEL?')[0] + ':')
         else:
             self.nvolt.close()
             self.nvolt = None
+            self.lbl_channel.setText('CH?:')
         self.update_status()
 
     def config(self):
@@ -62,8 +65,17 @@ class WidgetNanovolt(QtWidgets.QWidget, Ui_WidgetNanovolt):
             return np.nan
         else:
             ret = float(self.nvolt.query(':FETC?'))
-            self.lbl_value.setText(str(ret) + ' V')
-            return ret
+            if ret > 100 or ret < -100:
+                self.lbl_value.setText('OVERFLOW')
+                return np.nan
+            else:
+                if abs(ret) < 0.001:
+                    self.lbl_value.setText("{:.3f}".format(ret * 1000000) + ' µV')
+                elif abs(ret) < 1.0:
+                    self.lbl_value.setText("{:.3f}".format(ret * 1000) + ' mV')
+                else:
+                    self.lbl_value.setText("{:.3f}".format(ret) + ' V')
+                return ret
 
 
 class DialogNanovolt(QtWidgets.QDialog, Ui_DialogNanovolt):
@@ -130,7 +142,6 @@ class DialogNanovolt(QtWidgets.QDialog, Ui_DialogNanovolt):
 
         self.spin_filter.setValue(int(temp[4]))
 
-        print(temp[5])
         if temp[5] == 'MOV':
             self.radio_moving.setChecked(True)
         else:
@@ -141,8 +152,51 @@ class DialogNanovolt(QtWidgets.QDialog, Ui_DialogNanovolt):
         self.spin_rate.setValue(float(temp[7]))
 
     def send_config(self):
+        chan = str(self.combo_channel.currentIndex() + 1)
+
+        # Set channel.
         self.wid.nvolt.write(':SENS:FUNC "VOLT";' +
-                             ':SENS:' + self.combo_channel.currentText())
+                             ':SENS:CHAN ' + chan)
+        self.wid.lbl_channel.setText('CH' + chan + ':')
+
+        # Set range.
+        rang = self.combo_range.currentText()
+        if rang == 'Autoscale':
+            self.wid.nvolt.write(':SENSE:VOLT:CHAN' + chan + ':RANGE:AUTO 1')
+        else:
+            self.wid.nvolt.write(':SENSE:VOLT:CHAN' + chan + ':RANGE:AUTO 0')
+            if rang == '10 mV':
+                self.wid.nvolt.write(':SENSE:VOLT:CHAN' + chan + ':RANGE 0.01')
+            elif rang == '100 mV':
+                self.wid.nvolt.write(':SENSE:VOLT:CHAN' + chan + ':RANGE 0.1')
+            elif rang == '1 V':
+                self.wid.nvolt.write(':SENSE:VOLT:CHAN' + chan + ':RANGE 1')
+            elif rang == '10 V':
+                self.wid.nvolt.write(':SENSE:VOLT:CHAN' + chan + ':RANGE 10')
+            elif rang == '100 V':
+                self.wid.nvolt.write(':SENSE:VOLT:CHAN' + chan + ':RANGE 100')
+            else:
+                print('Invalid range!!!')
+
+        # Set line cycle synchronization.
+        self.wid.nvolt.write(':SYST:LSYNC ' + ('1' if self.check_lsync.isChecked() else '0'))
+
+        # Set rate.
+        self.wid.nvolt.write(':SENS:VOLT:NPLC ' + str(self.spin_rate.value()))
+
+        # Set analog filter.
+        self.wid.nvolt.write(':SENSE:VOLT:CHAN' + chan + ':LPASS ' + ('1' if self.check_analog.isChecked() else '0'))
+
+        # Set digital filter.
+        if self.check_digital.isChecked():
+            self.wid.nvolt.write(':SENSE:VOLT:CHAN' + chan + ':DFIL 1;' +
+                                 ':SENSE:VOLT:CHAN' + chan + ':DFIL:COUNT ' +
+                                 str(self.spin_filter.value()) + ';' +
+                                 ':SENSE:VOLT:CHAN' + chan + ':DFIL:TCON ' +
+                                 ('MOV' if self.radio_moving.isChecked() else 'REP')
+                                 )
+        else:
+            self.wid.nvolt.write(':SENSE:VOLT:CHAN' + chan + ':DFIL 0')
 
     def channel_changed(self):
         self.combo_range.clear()
@@ -164,6 +218,7 @@ if __name__ == "__main__":
     # Set font on label.
     font = QtGui.QFont()
     font.setPointSize(20)
+    font.setUnderline(True)
     wid.lbl_value.setFont(font)
 
     # Show window.
