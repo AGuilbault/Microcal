@@ -326,7 +326,7 @@
     </widget>
    </item>
    <item row="4" column="1">
-    <spacer name="verticalSpacer">
+    <spacer name="spacer">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
      </property>
@@ -352,7 +352,7 @@
        </widget>
       </item>
       <item row="0" column="1">
-       <widget class="QSpinBox" name="spinBox">
+       <widget class="QSpinBox" name="spin_interval">
         <property name="suffix">
          <string> ms</string>
         </property>
@@ -435,7 +435,7 @@
      </property>
      <layout class="QGridLayout" name="gridLayout_5">
       <item row="0" column="0">
-       <widget class="QWidget" name="widget_2" native="true">
+       <widget class="QWidget" name="wid_graph" native="true">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
           <horstretch>0</horstretch>
@@ -445,7 +445,7 @@
        </widget>
       </item>
       <item row="1" column="0">
-       <widget class="QPushButton" name="pushButton">
+       <widget class="QPushButton" name="btn_clear">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
           <horstretch>0</horstretch>
@@ -470,9 +470,9 @@
   </layout>
  </widget>
  <tabstops>
-  <tabstop>spinBox</tabstop>
+  <tabstop>spin_interval</tabstop>
   <tabstop>btn_record</tabstop>
-  <tabstop>pushButton</tabstop>
+  <tabstop>btn_clear</tabstop>
  </tabstops>
  <resources/>
  <connections/>
