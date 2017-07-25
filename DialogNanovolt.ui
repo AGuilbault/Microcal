@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>240</width>
-    <height>361</height>
+    <width>174</width>
+    <height>338</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -134,22 +134,38 @@
      <property name="standardButtons">
       <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
      </property>
+     <property name="centerButtons">
+      <bool>false</bool>
+     </property>
     </widget>
    </item>
    <item row="9" column="0">
-    <widget class="QGroupBox" name="groupBox">
+    <widget class="QGroupBox" name="group_digital">
      <property name="title">
       <string>Digital filter</string>
      </property>
+     <property name="checkable">
+      <bool>true</bool>
+     </property>
+     <property name="checked">
+      <bool>false</bool>
+     </property>
      <layout class="QGridLayout" name="gridLayout_2">
-      <item row="1" column="0">
+      <item row="0" column="0">
        <widget class="QLabel" name="_label_5">
         <property name="text">
          <string>Average</string>
         </property>
        </widget>
       </item>
-      <item row="3" column="0">
+      <item row="0" column="1">
+       <widget class="QLabel" name="_label_6">
+        <property name="text">
+         <string>Filter count</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
        <widget class="QRadioButton" name="radio_repeating">
         <property name="enabled">
          <bool>false</bool>
@@ -160,13 +176,6 @@
        </widget>
       </item>
       <item row="1" column="1">
-       <widget class="QLabel" name="_label_6">
-        <property name="text">
-         <string>Filter count</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="1">
        <widget class="QSpinBox" name="spin_filter">
         <property name="enabled">
          <bool>false</bool>
@@ -182,14 +191,7 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="0">
-       <widget class="QCheckBox" name="check_digital">
-        <property name="text">
-         <string>Enable</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="0">
+      <item row="1" column="0">
        <widget class="QRadioButton" name="radio_moving">
         <property name="enabled">
          <bool>false</bool>
@@ -226,10 +228,10 @@
   <tabstop>spin_rate</tabstop>
   <tabstop>check_lsync</tabstop>
   <tabstop>check_analog</tabstop>
-  <tabstop>check_digital</tabstop>
   <tabstop>radio_moving</tabstop>
   <tabstop>radio_repeating</tabstop>
   <tabstop>spin_filter</tabstop>
+  <tabstop>group_digital</tabstop>
  </tabstops>
  <resources/>
  <connections>
@@ -240,8 +242,8 @@
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>230</x>
-     <y>351</y>
+     <x>193</x>
+     <y>328</y>
     </hint>
     <hint type="destinationlabel">
      <x>157</x>
@@ -256,60 +258,12 @@
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>230</x>
-     <y>351</y>
+     <x>193</x>
+     <y>328</y>
     </hint>
     <hint type="destinationlabel">
-     <x>286</x>
+     <x>202</x>
      <y>274</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>check_digital</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>radio_moving</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>32</x>
-     <y>232</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>32</x>
-     <y>275</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>check_digital</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>radio_repeating</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>75</x>
-     <y>231</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>80</x>
-     <y>299</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>check_digital</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>spin_filter</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>107</x>
-     <y>229</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>203</x>
-     <y>270</y>
     </hint>
    </hints>
   </connection>

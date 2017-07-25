@@ -26,14 +26,9 @@ class WidgetPump(QtWidgets.QWidget, Ui_WidgetPump):
 
         self.combo_port.currentIndexChanged.connect(self.update_status)
         self.combo_baud.currentIndexChanged.connect(self.update_status)
-        self.protocol.updateSignal.connect(self.update_status)
 
-        def updatetar(x):
-            if x < 1:
-                self.lbl_target.setText(str(x * 1000) + ' µl')
-            else:
-                self.lbl_target.setText(str(x) + ' ml')
-        self.protocol.recTarSignal.connect(updatetar)
+        self.protocol.updateSignal.connect(self.update_status)
+        self.protocol.recTarSignal.connect(self.update_target)
 
         # Update GUI.
         self.update_status()
@@ -61,6 +56,12 @@ class WidgetPump(QtWidgets.QWidget, Ui_WidgetPump):
         elif self.protocol.state == self.protocol.STALLED:
             self.protocol.send_run()
 
+    def update_target(self, x):
+        if x < 1:
+            self.lbl_target.setText(str(x * 1000) + ' µl')
+        else:
+            self.lbl_target.setText(str(x) + ' ml')
+
     # Update GUI with state.
     def update_status(self):
         # Open if not already open.
@@ -74,6 +75,22 @@ class WidgetPump(QtWidgets.QWidget, Ui_WidgetPump):
             self.btn_config.setEnabled(False)
 
             self.lbl_target.setText('NA')
+
+            if self.protocol.state == self.protocol.STOPPED:
+                self.btn_infuse.setEnabled(True)
+                self.btn_infuse.setText('Infuse')
+                self.ico_state.setText('⏹')
+                self.lbl_state.setText('Stopped')
+            elif self.protocol.state == self.protocol.FORWARD:
+                self.btn_infuse.setEnabled(True)
+                self.btn_infuse.setText('Stop')
+                self.ico_state.setText('⏩')
+                self.lbl_state.setText('Running')
+            elif self.protocol.state == self.protocol.STALLED:
+                self.btn_infuse.setEnabled(True)
+                self.btn_infuse.setText('Re-infuse')
+                self.ico_state.setText('⏸')
+                self.lbl_state.setText('Stalled')
         # Close it if open.
         else:
             self.btn_conn.setText('Disconnect')
@@ -83,22 +100,6 @@ class WidgetPump(QtWidgets.QWidget, Ui_WidgetPump):
 
             self.btn_config.setEnabled(True)
 
-        if self.protocol.state == self.protocol.STOPPED:
-            self.btn_infuse.setEnabled(True)
-            self.btn_infuse.setText('Infuse')
-            self.ico_state.setText('⏹')
-            self.lbl_state.setText('Stopped')
-        elif self.protocol.state == self.protocol.FORWARD:
-            self.btn_infuse.setEnabled(True)
-            self.btn_infuse.setText('Stop')
-            self.ico_state.setText('⏩')
-            self.lbl_state.setText('Running')
-        elif self.protocol.state == self.protocol.STALLED:
-            self.btn_infuse.setEnabled(True)
-            self.btn_infuse.setText('Re-infuse')
-            self.ico_state.setText('⏸')
-            self.lbl_state.setText('Stalled')
-        else:
             self.btn_infuse.setEnabled(False)
             self.btn_infuse.setText('Infuse')
             self.ico_state.setText('')
@@ -115,7 +116,6 @@ class DialogPump(QtWidgets.QDialog, Ui_DialogPump):
         self.wid = parent
 
         self.buttonBox.accepted.connect(self.send_config)
-        # self.accepted.connect(self.send_config)
 
         self.wid.protocol.recRatSignal.connect(self.set_rate)
         self.wid.protocol.recDiaSignal.connect(self.spin_diameter.setValue)

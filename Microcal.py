@@ -10,6 +10,23 @@ from Nanovolt import WidgetNanovolt
 from Pump import WidgetPump
 
 
+def browse():
+    filename, ext = QtWidgets.QFileDialog.getSaveFileName(main_wid, 'Save file', 'C:\\', 'CSV files (*.csv)')
+    if filename != '':
+        main.edit_path.setText(filename)
+
+
+def record():
+    try:
+        csvfile = open(main.edit_path.text(), mode='w+t')
+        csvfile.write('Allo')
+        csvfile.close()
+        main.edit_path.setEnabled(False)
+        main.btn_record.setText('Stop')
+    except IOError as e:
+        QtWidgets.QMessageBox.critical(main_wid, 'Error', e.strerror)
+
+
 def change_interval():
     timer.setInterval(main.spinBox.value())
 
@@ -82,6 +99,9 @@ if __name__ == "__main__":
         toolbar.update()
     timer.timeout.connect(update_graph)
     timer.start()
+
+    main.btn_browse.clicked.connect(browse)
+    main.btn_record.clicked.connect(record)
 
     # Show window.
     tab.show()
