@@ -69,9 +69,9 @@ class WidgetPID(QtWidgets.QWidget, Ui_WidgetPID):
         self.label_status.setText('⏹ Off')
         self.controlling = False
 
-        latask = nidaqmx.system.storage.persisted_task.PersistedTask('Temper')
-        latache = latask.load()
-        latache.read()
+        #latask = nidaqmx.system.storage.persisted_task.PersistedTask('Temper')
+        #latache = latask.load()
+        #latache.read()
 
     def start(self):
         if self.controlling:

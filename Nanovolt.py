@@ -150,7 +150,7 @@ class DialogNanovolt(QtWidgets.QDialog, Ui_DialogNanovolt):
 
         # Set the filter checkboxes.
         self.check_analog.setChecked(config[2] == '1')
-        self.check_digital.setChecked(config[3] == '1')
+        self.group_digital.setChecked(config[3] == '1')
 
         # Set the filter count.
         self.spin_filter.setValue(int(config[4]))
@@ -208,7 +208,7 @@ class DialogNanovolt(QtWidgets.QDialog, Ui_DialogNanovolt):
         self.wid.nvolt.write(':SENSE:VOLT:CHAN' + chan + ':LPASS ' + ('1' if self.check_analog.isChecked() else '0'))
 
         # Send digital filter settings.
-        if self.check_digital.isChecked():
+        if self.group_digital.isChecked():
             self.wid.nvolt.write(':SENSE:VOLT:CHAN' + chan + ':DFIL 1;' +
                                  ':SENSE:VOLT:CHAN' + chan + ':DFIL:COUNT ' +
                                  str(self.spin_filter.value()) + ';' +
@@ -216,6 +216,8 @@ class DialogNanovolt(QtWidgets.QDialog, Ui_DialogNanovolt):
                                  ('MOV' if self.radio_moving.isChecked() else 'REP'))
         else:
             self.wid.nvolt.write(':SENSE:VOLT:CHAN' + chan + ':DFIL 0')
+
+        # TODO: send *SAV to save settings in the instrument memory.
 
     def channel_changed(self):
         # Save the selected range.
