@@ -42,6 +42,7 @@ class WidgetNanovolt(QtWidgets.QWidget, Ui_WidgetNanovolt):
             self.nvolt.close()
             self.nvolt = None
             self.lbl_channel.setText('CH?:')
+            self.lbl_value.setText('NA')
         self.update_status()
 
     def config(self):

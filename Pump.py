@@ -1,5 +1,5 @@
 import serial
-from PyQt5 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets, QtGui
 from serial.tools import list_ports
 
 from WidgetPump import Ui_WidgetPump
@@ -76,21 +76,11 @@ class WidgetPump(QtWidgets.QWidget, Ui_WidgetPump):
 
             self.lbl_target.setText('NA')
 
-            if self.protocol.state == self.protocol.STOPPED:
-                self.btn_infuse.setEnabled(True)
-                self.btn_infuse.setText('Infuse')
-                self.ico_state.setText('⏹')
-                self.lbl_state.setText('Stopped')
-            elif self.protocol.state == self.protocol.FORWARD:
-                self.btn_infuse.setEnabled(True)
-                self.btn_infuse.setText('Stop')
-                self.ico_state.setText('⏩')
-                self.lbl_state.setText('Running')
-            elif self.protocol.state == self.protocol.STALLED:
-                self.btn_infuse.setEnabled(True)
-                self.btn_infuse.setText('Re-infuse')
-                self.ico_state.setText('⏸')
-                self.lbl_state.setText('Stalled')
+            self.btn_infuse.setEnabled(False)
+            self.btn_infuse.setText('Infuse')
+            self.ico_state.setText('')
+            self.ico_state.setPixmap(QtGui.QPixmap())
+            self.lbl_state.setText('Disconnected')
         # Close it if open.
         else:
             self.btn_conn.setText('Disconnect')
@@ -100,10 +90,22 @@ class WidgetPump(QtWidgets.QWidget, Ui_WidgetPump):
 
             self.btn_config.setEnabled(True)
 
-            self.btn_infuse.setEnabled(False)
-            self.btn_infuse.setText('Infuse')
-            self.ico_state.setText('')
-            self.lbl_state.setText('Disconnected')
+            self.btn_infuse.setEnabled(True)
+            if self.protocol.state == self.protocol.STOPPED:
+                self.btn_infuse.setText('Infuse')
+                self.ico_state.setText('⏹')
+                self.ico_state.setPixmap(QtGui.QPixmap(".\\ico\\stop.png"))
+                self.lbl_state.setText('Stopped')
+            elif self.protocol.state == self.protocol.FORWARD:
+                self.btn_infuse.setText('Stop')
+                self.ico_state.setText('⏩')
+                self.ico_state.setPixmap(QtGui.QPixmap(".\\ico\\arrow_right.png"))
+                self.lbl_state.setText('Running')
+            elif self.protocol.state == self.protocol.STALLED:
+                self.btn_infuse.setText('Re-infuse')
+                self.ico_state.setText('⏸')
+                self.ico_state.setPixmap(QtGui.QPixmap(".\\ico\\control_pause.png"))
+                self.lbl_state.setText('Stalled')
 
 
 class DialogPump(QtWidgets.QDialog, Ui_DialogPump):

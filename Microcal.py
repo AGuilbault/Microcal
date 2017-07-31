@@ -16,18 +16,17 @@ class WidgetMain(QtWidgets.QWidget, WidgetMain.Ui_Form):
         super().__init__()
         self.setupUi(self)
 
-        # Create tabwidget
-        self.tab = QtWidgets.QTabWidget()
-
         # Create widgets
         self.wid_pump = WidgetPump()
-        self.group_pump.setLayout(self.wid_pump.layout())
-
         self.wid_nvolt = WidgetNanovolt(visa.ResourceManager())
-        self.group_nvolt.setLayout(self.wid_nvolt.layout())
-
         self.wid_pid = WidgetPID()
 
+        # Add widgets to main.
+        self.group_pump.setLayout(self.wid_pump.layout())
+        self.group_nvolt.setLayout(self.wid_nvolt.layout())
+
+        # Create tabwidget
+        self.tab = QtWidgets.QTabWidget()
         # Add widgets to tab.
         self.tab.addTab(self, 'Main tab')
         self.tab.addTab(self.wid_pid, 'PID')
@@ -38,12 +37,10 @@ class WidgetMain(QtWidgets.QWidget, WidgetMain.Ui_Form):
         # Create canvas widget to display figure.
         self.canvas = FigureCanvas(self.figure)
         # Create toolbar widget.
-        self.toolbar = NavigationToolbar(self.canvas, self.wid_graph)
+        self.toolbar = NavigationToolbar(self.canvas, self.group_graph)
         # Set the layout.
-        self.layout_graph = QtWidgets.QVBoxLayout()
-        self.layout_graph.addWidget(self.toolbar)
-        self.layout_graph.addWidget(self.canvas)
-        self.wid_graph.setLayout(self.layout_graph)
+        self.layout_graph.insertWidget(0, self.toolbar)
+        self.layout_graph.insertWidget(1, self.canvas)
 
         # Create empty data lists for graph.
         self.data_x = list()
@@ -68,9 +65,12 @@ class WidgetMain(QtWidgets.QWidget, WidgetMain.Ui_Form):
         # At timeout, update pid and graph.
         self.timer.timeout.connect(self.wid_pid.update_pid)
         self.timer.timeout.connect(self.update_graph)
+        # Start timer.
         self.timer.start()
 
+        # Open file browser.
         self.btn_browse.clicked.connect(self.browse)
+        # Start or stop recording when button pushed.
         self.btn_record.clicked.connect(self.record)
 
         # Init empty csv file variable.

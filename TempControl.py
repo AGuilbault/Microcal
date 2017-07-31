@@ -2,7 +2,7 @@ import random
 import nidaqmx
 import matplotlib.pyplot as plt
 import numpy as np
-from PyQt5 import QtWidgets, QtCore
+from PyQt5 import QtWidgets, QtCore, QtGui
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 
@@ -21,12 +21,10 @@ class WidgetPID(QtWidgets.QWidget, Ui_WidgetPID):
         # Create canvas widget to display figure.
         self.canvas = FigureCanvas(self.figure)
         # Create toolbar widget.
-        self.toolbar = NavigationToolbar(self.canvas, self.wid_graph)
+        self.toolbar = NavigationToolbar(self.canvas, self)
         # Set the layout.
-        self.layout_graph = QtWidgets.QVBoxLayout()
-        self.layout_graph.addWidget(self.toolbar)
-        self.layout_graph.addWidget(self.canvas)
-        self.wid_graph.setLayout(self.layout_graph)
+        self.layout_graph.insertWidget(0, self.toolbar)
+        self.layout_graph.insertWidget(1, self.canvas)
 
         # Create empty data lists for graph.
         self.data_x = list()
@@ -42,7 +40,7 @@ class WidgetPID(QtWidgets.QWidget, Ui_WidgetPID):
         # Add setpoint line.
         self.line_set, = self.ax.plot(self.data_x, self.data_s, c='0.5', ls=':')
         # Add pid line.
-        self.line_pid, = self.ax.plot(self.data_x, self.data_p, c='y', ls='-')
+        self.line_pid, = self.ax.plot(self.data_x, self.data_p, c='g', ls='-')
 
         # Start a timer for PID and graph.
         self.timer = QtCore.QElapsedTimer()
@@ -66,20 +64,25 @@ class WidgetPID(QtWidgets.QWidget, Ui_WidgetPID):
         self.spin_td.valueChanged.connect(self.setpoint_changed)
 
         # Init status.
-        self.label_status.setText('⏹ Off')
+        self.label_status.setText('Off')
+        self.ico_status.setPixmap(QtGui.QPixmap())
         self.controlling = False
 
-        #latask = nidaqmx.system.storage.persisted_task.PersistedTask('Temper')
-        #latache = latask.load()
-        #latache.read()
+        # latask = nidaqmx.system.storage.persisted_task.PersistedTask('Temper')
+        # latache = latask.load()
+        # latache.read()
 
     def start(self):
         if self.controlling:
-            self.label_status.setText('⏹ Off')
+            self.label_status.setText('Off')
+            self.ico_status.setPixmap(QtGui.QPixmap())
+
             self.btn_start.setText('Start')
             self.controlling = False
         else:
-            self.label_status.setText('▶ On')
+            self.label_status.setText('On')
+            self.ico_status.setPixmap(QtGui.QPixmap(".\\ico\\tick_red.png"))
+
             self.btn_start.setText('Stop')
             self.controlling = True
             self.pid.clear(self.timer.elapsed())
