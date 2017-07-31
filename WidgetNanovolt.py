@@ -11,7 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_WidgetNanovolt(object):
     def setupUi(self, WidgetNanovolt):
         WidgetNanovolt.setObjectName("WidgetNanovolt")
-        WidgetNanovolt.resize(231, 152)
+        WidgetNanovolt.resize(231, 126)
         self.formLayout = QtWidgets.QFormLayout(WidgetNanovolt)
         self.formLayout.setObjectName("formLayout")
         self._label_1 = QtWidgets.QLabel(WidgetNanovolt)

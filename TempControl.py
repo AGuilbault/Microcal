@@ -68,9 +68,19 @@ class WidgetPID(QtWidgets.QWidget, Ui_WidgetPID):
         self.ico_status.setPixmap(QtGui.QPixmap())
         self.controlling = False
 
-        # latask = nidaqmx.system.storage.persisted_task.PersistedTask('Temper')
-        # latache = latask.load()
-        # latache.read()
+        self.task_ai = nidaqmx.system.storage.persisted_task.PersistedTask('TaskTemp').load()
+
+        names = self.task_ai.channel_names
+        values = self.task_ai.read()
+        length = len(names)
+
+        self.tableWidget.setRowCount(length)
+
+        for i in range(length):
+            self.tableWidget.setItem(i, 0, QtWidgets.QTableWidgetItem(names[i]))
+            self.tableWidget.setItem(i, 1, QtWidgets.QTableWidgetItem('{:0.5f}'.format(values[i])))
+
+        self.tableWidget.resizeColumnsToContents()
 
     def start(self):
         if self.controlling:
@@ -88,7 +98,12 @@ class WidgetPID(QtWidgets.QWidget, Ui_WidgetPID):
             self.pid.clear(self.timer.elapsed())
 
     def update_pid(self):
-        reading = random.random() + 24.5
+        values = self.task_ai.read()
+
+        for i in range(len(values)):
+            self.tableWidget.setItem(i, 1, QtWidgets.QTableWidgetItem('{:0.5f}'.format(values[i])))
+
+        reading = values[0]
         self.data_x.append(self.timer.elapsed()/1000.0)
         self.data_y.append(reading)
         if self.controlling:
