@@ -63,7 +63,7 @@ class WidgetMain(QtWidgets.QWidget, WidgetMain.Ui_Form):
         # If interval changed in spin box, update timer interval.
         self.spin_interval.valueChanged.connect(self.timer.setInterval)
         # At timeout, update pid and graph.
-        self.timer.timeout.connect(self.wid_pid.update_pid)
+        self.timer.timeout.connect(self.wid_pid.worker.request_update)
         self.timer.timeout.connect(self.update_graph)
         # Start timer.
         self.timer.start()

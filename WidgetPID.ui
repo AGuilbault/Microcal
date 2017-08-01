@@ -14,42 +14,7 @@
    <string>Form</string>
   </property>
   <layout class="QGridLayout" name="gridLayout" columnstretch="1,0,0">
-   <item row="4" column="2">
-    <widget class="QDoubleSpinBox" name="spin_kc">
-     <property name="decimals">
-      <number>2</number>
-     </property>
-     <property name="minimum">
-      <double>-1000.000000000000000</double>
-     </property>
-     <property name="maximum">
-      <double>1000.000000000000000</double>
-     </property>
-     <property name="value">
-      <double>22.500000000000000</double>
-     </property>
-    </widget>
-   </item>
-   <item row="8" column="2">
-    <widget class="QDoubleSpinBox" name="spin_td">
-     <property name="suffix">
-      <string> ms</string>
-     </property>
-     <property name="decimals">
-      <number>2</number>
-     </property>
-     <property name="minimum">
-      <double>-1000.000000000000000</double>
-     </property>
-     <property name="maximum">
-      <double>1000.000000000000000</double>
-     </property>
-     <property name="value">
-      <double>20.800000000000001</double>
-     </property>
-    </widget>
-   </item>
-   <item row="10" column="2">
+   <item row="11" column="2">
     <widget class="QFrame" name="frame">
      <property name="frameShape">
       <enum>QFrame::Box</enum>
@@ -110,7 +75,49 @@
      </layout>
     </widget>
    </item>
-   <item row="0" column="0" rowspan="12">
+   <item row="4" column="2">
+    <widget class="QDoubleSpinBox" name="spin_kc">
+     <property name="decimals">
+      <number>2</number>
+     </property>
+     <property name="minimum">
+      <double>-1000.000000000000000</double>
+     </property>
+     <property name="maximum">
+      <double>1000.000000000000000</double>
+     </property>
+     <property name="value">
+      <double>22.500000000000000</double>
+     </property>
+    </widget>
+   </item>
+   <item row="8" column="2">
+    <widget class="QDoubleSpinBox" name="spin_td">
+     <property name="suffix">
+      <string> ms</string>
+     </property>
+     <property name="decimals">
+      <number>2</number>
+     </property>
+     <property name="minimum">
+      <double>-1000.000000000000000</double>
+     </property>
+     <property name="maximum">
+      <double>1000.000000000000000</double>
+     </property>
+     <property name="value">
+      <double>20.800000000000001</double>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="1" rowspan="13">
+    <widget class="Line" name="line">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="0" rowspan="13">
     <layout class="QVBoxLayout" name="layout_graph">
      <item>
       <widget class="QPushButton" name="btn_clear">
@@ -126,13 +133,6 @@
       </widget>
      </item>
     </layout>
-   </item>
-   <item row="0" column="1" rowspan="12">
-    <widget class="Line" name="line">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
-     </property>
-    </widget>
    </item>
    <item row="6" column="2">
     <widget class="QDoubleSpinBox" name="spin_ti">
@@ -153,17 +153,17 @@
      </property>
     </widget>
    </item>
-   <item row="11" column="2">
-    <widget class="QPushButton" name="btn_start">
-     <property name="text">
-      <string>Start</string>
-     </property>
-    </widget>
-   </item>
    <item row="3" column="2">
     <widget class="QLabel" name="_label_2">
      <property name="text">
       <string>Kc</string>
+     </property>
+    </widget>
+   </item>
+   <item row="12" column="2">
+    <widget class="QPushButton" name="btn_start">
+     <property name="text">
+      <string>Start</string>
      </property>
     </widget>
    </item>
@@ -188,6 +188,13 @@
      </property>
     </widget>
    </item>
+   <item row="7" column="2">
+    <widget class="QLabel" name="_label_4">
+     <property name="text">
+      <string>Td</string>
+     </property>
+    </widget>
+   </item>
    <item row="1" column="2">
     <widget class="QDoubleSpinBox" name="spin_setpoint">
      <property name="suffix">
@@ -201,14 +208,7 @@
      </property>
     </widget>
    </item>
-   <item row="7" column="2">
-    <widget class="QLabel" name="_label_4">
-     <property name="text">
-      <string>Td</string>
-     </property>
-    </widget>
-   </item>
-   <item row="9" column="2">
+   <item row="10" column="2">
     <widget class="QTableWidget" name="tableWidget">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
@@ -235,6 +235,13 @@
        <string>Value</string>
       </property>
      </column>
+    </widget>
+   </item>
+   <item row="9" column="2">
+    <widget class="Line" name="line_2">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
     </widget>
    </item>
   </layout>
