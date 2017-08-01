@@ -60,7 +60,7 @@ class WidgetPID(QtWidgets.QWidget, Ui_WidgetPID):
         self.worker.moveToThread(self.thread)
         self.worker.updated.connect(self.updated)
         self.worker.finished.connect(self.thread.quit)
-        self.thread.started.connect(self.worker.run)
+        self.thread.started.connect(self.worker.start)
         self.thread.start()
 
     def start(self):
@@ -125,31 +125,7 @@ class CDAQThread(QtCore.QObject):
     updated = QtCore.pyqtSignal(list, list)
 
     @QtCore.pyqtSlot()
-    def request_update(self):
-        self.request = True
-
-    @QtCore.pyqtSlot(bool)
-    def toogle_pid(self, controlling):
-        self.controlling = controlling
-
-    @QtCore.pyqtSlot(float)
-    def set_point(self, set_p):
-        self.pid.set_point(set_p)
-
-    @QtCore.pyqtSlot(float)
-    def set_kp(self, proportional_gain):
-        self.pid.set_kp(proportional_gain)
-
-    @QtCore.pyqtSlot(float)
-    def set_ti(self, integral_gain):
-        self.pid.set_ti(integral_gain)
-
-    @QtCore.pyqtSlot(float)
-    def set_td(self, derivative_gain):
-        self.pid.set_td(derivative_gain)
-
-    @QtCore.pyqtSlot()
-    def run(self):
+    def start(self):
         # Init request flag.
         self.request = False
         self.controlling = False
@@ -177,38 +153,8 @@ class CDAQThread(QtCore.QObject):
         except Exception as err:
             print(err)
 
-        names = self.task_ai.channel_names + ['Peltier']
-
-        # Update loop.
-        while self.alive:
-            if self.request:
-                temp = self.timer.elapsed()
-                # Read the input.
-                values = self.task_ai.read()
-
-                # Update pid.
-                if self.controlling:
-                    out = self.pid.update(values[0], self.timer.elapsed())
-                else:
-                    out = np.nan
-
-                # Write the output.
-                try:
-                    if out is not np.nan:
-                        self.task_co.write(nidaqmx.types.CtrTime(abs(out)/100000, 0.001-abs(out)/100000))
-                        self.task_do.write([out > 0, out != 0])
-                    else:
-                        self.task_co.write(nidaqmx.types.CtrTime(0, 0.001))
-                        self.task_do.write([False, False])
-                except Exception as err:
-                    print(err)
-
-                # Return inputs and ouputs.
-                self.updated.emit(names, values + [out])
-
-                self.request = False
-                print('Time = {}'.format(self.timer.elapsed()-temp))
-
+    @QtCore.pyqtSlot()
+    def stop(self):
         # Stop tasks.
         self.task_ai.stop()
         self.task_co.stop()
@@ -217,6 +163,52 @@ class CDAQThread(QtCore.QObject):
         self.task_co.control(nidaqmx.constants.TaskMode.TASK_UNRESERVE)
 
         self.finished.emit()
+
+    @QtCore.pyqtSlot()
+    def update(self):
+        # Read the input.
+        names = self.task_ai.channel_names + ['Peltier']
+        values = self.task_ai.read()
+
+        # Update pid.
+        if self.controlling:
+            out = self.pid.update(values[0], self.timer.elapsed())
+        else:
+            out = np.nan
+
+        # Write the output.
+        try:
+            if out is not np.nan:
+                self.task_co.write(nidaqmx.types.CtrTime(abs(out) / 100000, 0.001 - abs(out) / 100000))
+                self.task_do.write([out > 0, out != 0])
+            else:
+                self.task_co.write(nidaqmx.types.CtrTime(0, 0.001))
+                self.task_do.write([False, False])
+        except Exception as err:
+            print(err)
+
+        # Return inputs and ouputs.
+        self.updated.emit(names, values + [out])
+
+    @QtCore.pyqtSlot(bool)
+    def toogle_pid(self, controlling):
+        self.controlling = controlling
+
+    @QtCore.pyqtSlot(float)
+    def set_point(self, set_p):
+        self.pid.set_point(set_p)
+
+    @QtCore.pyqtSlot(float)
+    def set_kp(self, proportional_gain):
+        self.pid.set_kp(proportional_gain)
+
+    @QtCore.pyqtSlot(float)
+    def set_ti(self, integral_gain):
+        self.pid.set_ti(integral_gain)
+
+    @QtCore.pyqtSlot(float)
+    def set_td(self, derivative_gain):
+        self.pid.set_td(derivative_gain)
 
 
 if __name__ == "__main__":
@@ -234,8 +226,8 @@ if __name__ == "__main__":
 
     # Create timer.
     timer = QtCore.QTimer()
-    timer.setInterval(250)
-    timer.timeout.connect(wid.worker.request_update)
+    timer.setInterval(500)
+    timer.timeout.connect(wid.worker.update)
     timer.start()
 
     # Run GUI loop.
