@@ -64,6 +64,7 @@ class WidgetMain(QtWidgets.QWidget, WidgetMain.Ui_Form):
         self.spin_interval.valueChanged.connect(self.timer.setInterval)
         # At timeout, update pid and graph.
         self.timer.timeout.connect(self.wid_pid.worker.update)
+        self.wid_pid.worker.updated.connect(self.append_csv)
         self.timer.timeout.connect(self.update_graph)
         # Start timer.
         self.timer.start()
@@ -116,10 +117,18 @@ class WidgetMain(QtWidgets.QWidget, WidgetMain.Ui_Form):
         self.toolbar.update()
         # Append to csv file if open.
         if self.csvfile is not None and not self.csvfile.closed:
-            self.csvfile.write('{0:.3f}, {1}\n'.format(self.data_x[-1], self.data_y[-1]))
+            self.csvfile.write('{0:.3f}, {1}'.format(self.data_x[-1], self.data_y[-1]))
             self.csvfile.flush()
             self.lbl_status.setText((self.lbl_status.text() + '.').replace('....', ''))
 
+    @QtCore.pyqtSlot(list, list)
+    def append_csv(self, names, values):
+        # Append to csv file if open.
+        if self.csvfile is not None and not self.csvfile.closed:
+            for v in values:
+                self.csvfile.write(', {0:.3f}'.format(v))
+            self.csvfile.write('\n')
+            self.csvfile.flush()
 
 if __name__ == "__main__":
     import sys

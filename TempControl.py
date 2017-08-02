@@ -182,7 +182,7 @@ class CDAQThread(QtCore.QObject):
                 self.task_co.write(nidaqmx.types.CtrTime(abs(out) / 100000, 0.001 - abs(out) / 100000))
                 self.task_do.write([out > 0, out != 0])
             else:
-                self.task_co.write(nidaqmx.types.CtrTime(0, 0.001))
+                # self.task_co.write(nidaqmx.types.CtrTime(0, 0.001))
                 self.task_do.write([False, False])
         except Exception as err:
             print(err)
