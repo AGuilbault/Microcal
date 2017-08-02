@@ -121,8 +121,8 @@ class WidgetMain(QtWidgets.QWidget, WidgetMain.Ui_Form):
             self.csvfile.flush()
             self.lbl_status.setText((self.lbl_status.text() + '.').replace('....', ''))
 
-    @QtCore.pyqtSlot(list, list)
-    def append_csv(self, names, values):
+    @QtCore.pyqtSlot(list, list, list)
+    def append_csv(self, names, values, units):
         # Append to csv file if open.
         if self.csvfile is not None and not self.csvfile.closed:
             for v in values:

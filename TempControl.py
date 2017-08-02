@@ -83,15 +83,15 @@ class WidgetPID(QtWidgets.QWidget, Ui_WidgetPID):
             self.controlling = True
             self.worker.toogle_pid(True)
 
-    @QtCore.pyqtSlot(list, list)
-    def updated(self, names, values):
+    @QtCore.pyqtSlot(list, list, list)
+    def updated(self, names, values, units):
 
         self.tableWidget.setRowCount(len(names))
         for i in range(len(names)):
             self.tableWidget.setItem(i, 0, QtWidgets.QTableWidgetItem(names[i]))
-            self.tableWidget.setItem(i, 1, QtWidgets.QTableWidgetItem('{:0.5f}'.format(values[i])))
+            self.tableWidget.setItem(i, 1, QtWidgets.QTableWidgetItem('{:0.5f} {}'.format(values[i], units[i])))
 
-        self.data_x.append(self.timer.elapsed()/1000.0)
+        self.data_x.append(self.timer.elapsed() / 1000.0)
         self.data_y.append(values[0])
         self.data_p.append(values[-1])
         if self.controlling:
@@ -122,7 +122,7 @@ class WidgetPID(QtWidgets.QWidget, Ui_WidgetPID):
 
 class CDAQThread(QtCore.QObject):
     finished = QtCore.pyqtSignal()
-    updated = QtCore.pyqtSignal(list, list)
+    updated = QtCore.pyqtSignal(list, list, list)
 
     @QtCore.pyqtSlot()
     def start(self):
@@ -167,7 +167,18 @@ class CDAQThread(QtCore.QObject):
     @QtCore.pyqtSlot()
     def update(self):
         # Read the input.
-        names = self.task_ai.channel_names + ['Peltier']
+        names = self.task_ai.channel_names
+
+        units = ['?'] * len(names)
+        for i in range(len(names)):
+            chan = nidaqmx._task_modules.channels.ai_channel.AIChannel(self.task_ai._handle, names[i])
+            if chan.ai_meas_type == nidaqmx.constants.UsageTypeAI.TEMPERATURE_RTD and \
+                    chan.ai_temp_units == nidaqmx.constants.TemperatureUnits.DEG_C:
+                units[i] = '°C'
+            elif chan.ai_meas_type == nidaqmx.constants.UsageTypeAI.VOLTAGE and \
+                    chan.ai_voltage_units == nidaqmx.constants.VoltageUnits.FROM_CUSTOM_SCALE:
+                units[i] = chan.ai_custom_scale.scaled_units
+
         values = self.task_ai.read()
 
         # Update pid.
@@ -188,7 +199,7 @@ class CDAQThread(QtCore.QObject):
             print(err)
 
         # Return inputs and ouputs.
-        self.updated.emit(names, values + [out])
+        self.updated.emit(names + ['Peltier'], values + [out], units + ['%'])
 
     @QtCore.pyqtSlot(bool)
     def toogle_pid(self, controlling):
@@ -213,6 +224,7 @@ class CDAQThread(QtCore.QObject):
 
 if __name__ == "__main__":
     import sys
+
     # Define app.
     app = QtWidgets.QApplication(sys.argv)
 
