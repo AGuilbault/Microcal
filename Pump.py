@@ -12,6 +12,8 @@ class WidgetPump(QtWidgets.QWidget, Ui_WidgetPump):
     s_run = QtCore.pyqtSignal()
     s_stp = QtCore.pyqtSignal()
 
+    g_tar = QtCore.pyqtSignal()
+
     def __init__(self):
         # Initialise overloaded classes.
         super().__init__()
@@ -27,12 +29,13 @@ class WidgetPump(QtWidgets.QWidget, Ui_WidgetPump):
 
         self.protocol.finished.connect(self.thread.quit)
         self.protocol.updateSignal.connect(self.update_status)
-        # self.protocol.recTarSignal.connect(self.update_target)
+        self.protocol.recTarSignal.connect(self.update_target)
 
         self.open.connect(self.protocol.open)
         self.close.connect(self.protocol.close)
         self.s_run.connect(self.protocol.send_run)
         self.s_stp.connect(self.protocol.send_stp)
+        self.g_tar.connect(self.protocol.get_target)
 
         self.thread.start()
 
@@ -58,18 +61,17 @@ class WidgetPump(QtWidgets.QWidget, Ui_WidgetPump):
             if port != '':  # If port selected, connect.
                 self.open.emit(port, self.combo_baud.currentText())
                 self.connected = True
+                self.g_tar.emit()
             else:  # If not, show essor message.
                 QtWidgets.QMessageBox.critical(self, 'Error', 'No port selected.')
         else:
             self.close.emit()
             self.connected = False
-        print('connected')
 
     def config(self):
         dialog = DialogPump(self)
         if dialog.exec_():
-            pass
-            #self.protocol.get_target()
+            self.g_tar.emit()
 
     def button_action(self):
         if self.state == SerialThread.STOPPED or self.state == SerialThread.STALLED:
@@ -77,17 +79,17 @@ class WidgetPump(QtWidgets.QWidget, Ui_WidgetPump):
         elif self.state == SerialThread.FORWARD:
             self.s_stp.emit()
 
+    @QtCore.pyqtSlot(float)
     def update_target(self, x):
         if x < 1:
-            self.lbl_target.setText(str(x * 1000) + ' µl')
+            self.lbl_target.setText('{:0.5} ul'.format(x * 1000))
         else:
-            self.lbl_target.setText(str(x) + ' ml')
+            self.lbl_target.setText('{:0.5} ml'.format(x))
 
     # Update GUI with state.
     @QtCore.pyqtSlot(int)
     def update_status(self, status):
         self.state = status
-        print('update : ' + str(status))
         # Open if not already open.
         if not status:
             self.btn_conn.setText('Connect')
@@ -224,34 +226,33 @@ class SerialThread(QtCore.QObject):
     @QtCore.pyqtSlot()
     def send_run(self):
         self.ser.write(b'RUN\r')
-        in_packet = False
         over = False
+
         while not over and self.ser.is_open:
-            if not in_packet:
-                # Check if signals received.
-                QtWidgets.QApplication.processEvents()
-                # Send carriage return to receive status.
-                self.ser.write(b'\r')
-                in_packet = True
+            # Check if signals received.
+            QtWidgets.QApplication.processEvents()
 
-            # Read all that is there.
-            data = self.ser.read(self.ser.in_waiting or 1)
+            # Send carriage return to receive status.
+            self.ser.write(b'\r')
+            in_packet = True
 
-            # For each byte.
-            for byte in serial.iterbytes(data):
-                if byte == b'\n':
-                    in_packet = True
-                elif byte == b':':
-                    self.updateSignal.emit(SerialThread.STOPPED)
-                    over = True
-                    in_packet = False
-                elif byte == b'>':
-                    self.updateSignal.emit(SerialThread.FORWARD)
-                    in_packet = False
-                elif byte == b'*':
-                    self.updateSignal.emit(SerialThread.STALLED)
-                    over = True
-                    in_packet = False
+            while in_packet and self.ser.is_open:
+                # Read all that is there.
+                data = self.ser.read(self.ser.in_waiting or 1)
+
+                # For each byte.
+                for byte in serial.iterbytes(data):
+                    if byte == b':':
+                        self.updateSignal.emit(SerialThread.STOPPED)
+                        over = True
+                        in_packet = False
+                    elif byte == b'>':
+                        self.updateSignal.emit(SerialThread.FORWARD)
+                        in_packet = False
+                    elif byte == b'*':
+                        self.updateSignal.emit(SerialThread.STALLED)
+                        over = True
+                        in_packet = False
 
     @QtCore.pyqtSlot()
     def send_stp(self):
@@ -314,17 +315,14 @@ class SerialThread(QtCore.QObject):
                     self.updateSignal.emit(SerialThread.STOPPED)
                     in_packet = False
                     requested = 0
-                    print(bytes(packet))
                 elif byte == b'>':
                     self.updateSignal.emit(SerialThread.FORWARD)
                     in_packet = False
                     requested = 0
-                    print(bytes(packet))
                 elif byte == b'*':
                     self.updateSignal.emit(SerialThread.STALLED)
                     in_packet = False
                     requested = 0
-                    print(bytes(packet))
                 elif byte == b'\r':
                     if requested == 1:
                         self.recDiaSignal.emit(float(bytes(packet)))
@@ -333,8 +331,6 @@ class SerialThread(QtCore.QObject):
                                                [b'ml/mn', b'ul/mn', b'ml/hr', b'ul/hr'].index(bytes(packet[9:])))
                     elif requested == 3:
                         self.recTarSignal.emit(float(bytes(packet)))
-                    requested = 0
-                    print(bytes(packet))
                 elif in_packet:
                     packet.extend(byte)
 
