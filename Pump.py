@@ -7,11 +7,11 @@ from DialogPump import Ui_DialogPump
 
 
 class WidgetPump(QtWidgets.QWidget, Ui_WidgetPump):
+    # Signals to interface thread.
     open = QtCore.pyqtSignal(str, str)
     close = QtCore.pyqtSignal()
     s_run = QtCore.pyqtSignal()
     s_stp = QtCore.pyqtSignal()
-
     g_tar = QtCore.pyqtSignal()
 
     def __init__(self):
@@ -19,12 +19,14 @@ class WidgetPump(QtWidgets.QWidget, Ui_WidgetPump):
         super().__init__()
         self.setupUi(self)
 
-        # Define serial thread.
+        # Start serial thread.
         self.thread = QtCore.QThread()
         self.protocol = SerialThread()
 
+        # Move object to thread.
         self.protocol.moveToThread(self.thread)
 
+        # Connect slots and signals.
         self.thread.started.connect(self.protocol.start)
 
         self.protocol.finished.connect(self.thread.quit)
@@ -37,13 +39,14 @@ class WidgetPump(QtWidgets.QWidget, Ui_WidgetPump):
         self.s_stp.connect(self.protocol.send_stp)
         self.g_tar.connect(self.protocol.get_target)
 
+        # Start thread.
         self.thread.start()
 
         # List ports.
         for t in list_ports.comports():
             self.combo_port.addItem(t.device)
 
-        # Connect slots.
+        # Connect interface slots.
         self.btn_conn.clicked.connect(self.connect)
         self.btn_config.clicked.connect(self.config)
         self.btn_infuse.clicked.connect(self.button_action)
@@ -51,12 +54,14 @@ class WidgetPump(QtWidgets.QWidget, Ui_WidgetPump):
         # Update GUI.
         self.update_status(SerialThread.DISCONNECTED)
 
+        # Set initial state.
         self.connected = False
         self.state = SerialThread.DISCONNECTED
 
     # Open or close serial port.
+    @QtCore.pyqtSlot()
     def connect(self):
-        if not self.connected:
+        if not self.connected:  # Connect if not connected.
             port = self.combo_port.currentText()
             if port != '':  # If port selected, connect.
                 self.open.emit(port, self.combo_baud.currentText())
@@ -64,68 +69,70 @@ class WidgetPump(QtWidgets.QWidget, Ui_WidgetPump):
                 self.g_tar.emit()
             else:  # If not, show essor message.
                 QtWidgets.QMessageBox.critical(self, 'Error', 'No port selected.')
-        else:
+        else:  # If connected close.
             self.close.emit()
             self.connected = False
 
+    # Show configuration dialog.
+    @QtCore.pyqtSlot()
     def config(self):
-        dialog = DialogPump(self)
-        if dialog.exec_():
-            self.g_tar.emit()
+        dialog = DialogPump(self.protocol)
+        if dialog.exec_():     # If dialog accepted (configuration sent).
+            self.g_tar.emit()  # Get target to update label.
 
+    @QtCore.pyqtSlot()
     def button_action(self):
+        # If not running, send run command.
         if self.state == SerialThread.STOPPED or self.state == SerialThread.STALLED:
             self.s_run.emit()
+        # Otherwise, send stop command.
         elif self.state == SerialThread.FORWARD:
             self.s_stp.emit()
 
+    # Slot to receive target and update label.
     @QtCore.pyqtSlot(float)
-    def update_target(self, x):
-        if x < 1:
-            self.lbl_target.setText('{:0.5} ul'.format(x * 1000))
-        else:
-            self.lbl_target.setText('{:0.5} ml'.format(x))
+    def update_target(self, tar):
+        if tar < 1:  # If less than a ml, show in µl.
+            self.lbl_target.setText('{:0.5} µl'.format(tar * 1000))
+        else:        # Otherwise, show in ml.
+            self.lbl_target.setText('{:0.5} ml'.format(tar))
 
     # Update GUI with state.
     @QtCore.pyqtSlot(int)
     def update_status(self, status):
         self.state = status
-        # Open if not already open.
-        if not status:
-            self.btn_conn.setText('Connect')
-            self.combo_port.setEnabled(True)
-            self.combo_baud.setEnabled(True)
 
-            self.btn_config.setEnabled(False)
+        # Set connection button text.
+        self.btn_conn.setText('Connect' if not status else 'Disconnect')
 
+        # Disable combo boxes when connected.
+        self.combo_port.setEnabled(not status)
+        self.combo_baud.setEnabled(not status)
+
+        # Enable configuration and infusion when connected.
+        self.btn_config.setEnabled(status)
+        self.btn_infuse.setEnabled(status)
+
+        # Update status label, status icon and action button text.
+        if status == SerialThread.DISCONNECTED:
+            # Reset target label if disconnected.
             self.lbl_target.setText('NA')
 
-            self.btn_infuse.setEnabled(False)
             self.btn_infuse.setText('Infuse')
-            self.ico_state.setText('')
             self.ico_state.setPixmap(QtGui.QPixmap())
             self.lbl_state.setText('Disconnected')
-        # Close it if open.
-        else:
-            self.btn_conn.setText('Disconnect')
-            self.combo_port.setEnabled(False)
-            self.combo_baud.setEnabled(False)
-
-            self.btn_config.setEnabled(True)
-
-            self.btn_infuse.setEnabled(True)
-            if status == SerialThread.STOPPED:
-                self.btn_infuse.setText('Infuse')
-                self.ico_state.setPixmap(QtGui.QPixmap(".\\ico\\stop.png"))
-                self.lbl_state.setText('Stopped')
-            elif status == SerialThread.FORWARD:
-                self.btn_infuse.setText('Stop')
-                self.ico_state.setPixmap(QtGui.QPixmap(".\\ico\\arrow_right.png"))
-                self.lbl_state.setText('Running')
-            elif status == SerialThread.STALLED:
-                self.btn_infuse.setText('Re-infuse')
-                self.ico_state.setPixmap(QtGui.QPixmap(".\\ico\\control_pause.png"))
-                self.lbl_state.setText('Stalled')
+        elif status == SerialThread.STOPPED:
+            self.btn_infuse.setText('Infuse')
+            self.ico_state.setPixmap(QtGui.QPixmap(".\\ico\\stop.png"))
+            self.lbl_state.setText('Stopped')
+        elif status == SerialThread.FORWARD:
+            self.btn_infuse.setText('Stop')
+            self.ico_state.setPixmap(QtGui.QPixmap(".\\ico\\arrow_right.png"))
+            self.lbl_state.setText('Running')
+        elif status == SerialThread.STALLED:
+            self.btn_infuse.setText('Re-infuse')
+            self.ico_state.setPixmap(QtGui.QPixmap(".\\ico\\control_pause.png"))
+            self.lbl_state.setText('Stalled')
 
 
 class DialogPump(QtWidgets.QDialog, Ui_DialogPump):
@@ -137,27 +144,25 @@ class DialogPump(QtWidgets.QDialog, Ui_DialogPump):
     s_dia = QtCore.pyqtSignal(float)
     s_tar = QtCore.pyqtSignal(float)
 
-    def __init__(self, parent):
+    def __init__(self, protocol):
         # Initialise overloaded classes.
         super().__init__()
 
         self.setupUi(self)
 
-        self.wid = parent
-
         self.buttonBox.accepted.connect(self.send_config)
 
-        self.g_rat.connect(parent.protocol.get_rate)
-        self.g_dia.connect(parent.protocol.get_diameter)
-        self.g_tar.connect(parent.protocol.get_target)
+        self.g_rat.connect(protocol.get_rate)
+        self.g_dia.connect(protocol.get_diameter)
+        self.g_tar.connect(protocol.get_target)
 
-        self.s_rat.connect(parent.protocol.send_rate)
-        self.s_dia.connect(parent.protocol.send_diameter)
-        self.s_tar.connect(parent.protocol.send_target)
+        self.s_rat.connect(protocol.send_rate)
+        self.s_dia.connect(protocol.send_diameter)
+        self.s_tar.connect(protocol.send_target)
 
-        parent.protocol.recRatSignal.connect(self.set_rate)
-        parent.protocol.recDiaSignal.connect(self.spin_diameter.setValue)
-        parent.protocol.recTarSignal.connect(self.spin_target.setValue)
+        protocol.recRatSignal.connect(self.set_rate)
+        protocol.recDiaSignal.connect(self.spin_diameter.setValue)
+        protocol.recTarSignal.connect(self.spin_target.setValue)
 
         # Send request to get configuration.
         self.g_rat.emit()
@@ -229,9 +234,6 @@ class SerialThread(QtCore.QObject):
         over = False
 
         while not over and self.ser.is_open:
-            # Check if signals received.
-            QtWidgets.QApplication.processEvents()
-
             # Send carriage return to receive status.
             self.ser.write(b'\r')
             in_packet = True
@@ -253,6 +255,9 @@ class SerialThread(QtCore.QObject):
                         self.updateSignal.emit(SerialThread.STALLED)
                         over = True
                         in_packet = False
+
+            # Check if signals received.
+            QtWidgets.QApplication.processEvents()
 
     @QtCore.pyqtSlot()
     def send_stp(self):
