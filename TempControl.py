@@ -63,6 +63,11 @@ class WidgetPID(QtWidgets.QWidget, Ui_WidgetPID):
         self.thread.started.connect(self.worker.start)
         self.thread.start()
 
+        self.spin_setpoint.valueChanged.connect(self.worker.set_point)
+        self.spin_kc.valueChanged.connect(self.worker.set_kp)
+        self.spin_ti.valueChanged.connect(self.worker.set_ti)
+        self.spin_td.valueChanged.connect(self.worker.set_td)
+
     def start(self):
         if self.controlling:
             # Update GUI.
