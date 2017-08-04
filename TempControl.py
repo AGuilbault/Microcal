@@ -220,11 +220,11 @@ class CDAQThread(QtCore.QObject):
 
     @QtCore.pyqtSlot(float)
     def set_ti(self, integral_gain):
-        self.pid.set_ti(integral_gain)
+        self.pid.set_ti(integral_gain * 1000)
 
     @QtCore.pyqtSlot(float)
     def set_td(self, derivative_gain):
-        self.pid.set_td(derivative_gain)
+        self.pid.set_td(derivative_gain * 1000)
 
 
 if __name__ == "__main__":
