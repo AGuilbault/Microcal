@@ -217,8 +217,6 @@ class SerialThread(QtCore.QObject):
         # Change state.
         self.updateSignal.emit(SerialThread.STOPPED)
 
-        # self.run()
-
     @QtCore.pyqtSlot()
     def close(self):
         # Close serial port.
@@ -256,7 +254,7 @@ class SerialThread(QtCore.QObject):
                         over = True
                         in_packet = False
 
-            # Check if signals received.
+            # Check if signals received by thread.
             QtWidgets.QApplication.processEvents()
 
     @QtCore.pyqtSlot()
@@ -285,21 +283,21 @@ class SerialThread(QtCore.QObject):
     """ Get config commands """
     @QtCore.pyqtSlot()
     def get_diameter(self):
-        self.ser.reset_input_buffer()
-        self.ser.write(b'DIA\r')
-        self.run(1)
+        self.ser.reset_input_buffer()   # Clear input buffer.
+        self.ser.write(b'DIA\r')    # Send request.
+        self.run(1)     # Wait for answer from the pump.
 
     @QtCore.pyqtSlot()
     def get_rate(self):
-        self.ser.reset_input_buffer()
-        self.ser.write(b'RAT\r')
-        self.run(2)
+        self.ser.reset_input_buffer()   # Clear input buffer.
+        self.ser.write(b'RAT\r')    # Send request.
+        self.run(2)     # Wait for answer from the pump.
 
     @QtCore.pyqtSlot()
     def get_target(self):
-        self.ser.reset_input_buffer()
-        self.ser.write(b'TAR\r')
-        self.run(3)
+        self.ser.reset_input_buffer()   # Clear input buffer.
+        self.ser.write(b'TAR\r')    # Send request.
+        self.run(3)     # Wait for answer from the pump.
 
     def run(self, requested):
         # Init variables.
@@ -341,7 +339,9 @@ class SerialThread(QtCore.QObject):
 
 
 if __name__ == "__main__":
+    """Main to run Pump in standalone."""
     import sys
+
     # Define app.
     app = QtWidgets.QApplication(sys.argv)
 

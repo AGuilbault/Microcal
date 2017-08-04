@@ -136,7 +136,7 @@ class CDAQThread(QtCore.QObject):
         self.timer.start()
 
         # Init PID.
-        self.pid = PID(timestamp=self.timer.elapsed(), max_out=60.0)
+        self.pid = PID(timestamp=self.timer.elapsed(), maximum=60.0)
 
         # Load tasks from NI-MAX.
         self.task_ai = nidaqmx.system.storage.persisted_task.PersistedTask('TaskTemp').load()

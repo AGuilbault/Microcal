@@ -87,14 +87,14 @@
       <double>1000.000000000000000</double>
      </property>
      <property name="value">
-      <double>22.500000000000000</double>
+      <double>20.000000000000000</double>
      </property>
     </widget>
    </item>
    <item row="8" column="2">
     <widget class="QDoubleSpinBox" name="spin_td">
      <property name="suffix">
-      <string> ms</string>
+      <string> s</string>
      </property>
      <property name="decimals">
       <number>2</number>
@@ -106,7 +106,7 @@
       <double>1000.000000000000000</double>
      </property>
      <property name="value">
-      <double>20.800000000000001</double>
+      <double>1.000000000000000</double>
      </property>
     </widget>
    </item>
@@ -137,7 +137,7 @@
    <item row="6" column="2">
     <widget class="QDoubleSpinBox" name="spin_ti">
      <property name="suffix">
-      <string> ms</string>
+      <string> s</string>
      </property>
      <property name="decimals">
       <number>2</number>
@@ -149,7 +149,7 @@
       <double>1000.000000000000000</double>
      </property>
      <property name="value">
-      <double>86.599999999999994</double>
+      <double>5.000000000000000</double>
      </property>
     </widget>
    </item>
