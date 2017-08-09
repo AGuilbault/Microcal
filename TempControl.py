@@ -25,23 +25,21 @@ class WidgetPID(QtWidgets.QWidget, Ui_WidgetPID):
         self.layout_graph.insertWidget(0, self.toolbar)
         self.layout_graph.insertWidget(1, self.canvas)
 
-        # Create empty data lists for graph.
-        self.data_x = list()
-        self.data_y = list()
-        self.data_s = list()
-        self.data_p = list()
-
         # Add axis.
         self.ax = self.figure.add_subplot(111)
 
-        # Add temperature line.
-        self.line_temp, = self.ax.plot(self.data_x, self.data_y, c='r', ls='-')
-        # Add setpoint line.
-        self.line_set, = self.ax.plot(self.data_x, self.data_s, c='0.5', ls=':')
-        # Add pid line.
-        self.line_pid, = self.ax.plot(self.data_x, self.data_p, c='g', ls='-')
+        # Create empty data lists for graph values.
+        self.data_x = list()
+        self.data_temp = list()
+        self.data_set = list()
+        self.data_pid = list()
 
-        # Start a timer for PID and graph.
+        # Add lines.
+        self.line_temp, = self.ax.plot(self.data_x, self.data_temp, c='r', ls='-')
+        self.line_set, = self.ax.plot(self.data_x, self.data_set, c='0.5', ls=':')
+        self.line_pid, = self.ax.plot(self.data_x, self.data_pid, c='g', ls='-')
+
+        # Start a timer for graph x values.
         self.timer = QtCore.QElapsedTimer()
         self.timer.start()
 
@@ -62,6 +60,20 @@ class WidgetPID(QtWidgets.QWidget, Ui_WidgetPID):
         self.worker.finished.connect(self.thread.quit)
         self.thread.started.connect(self.worker.start)
         self.thread.start()
+
+        # Connect signals and slots.
+        self.spin_setpoint.valueChanged.connect(self.worker.set_point)
+        self.spin_kc.valueChanged.connect(self.worker.set_kp)
+        self.spin_ti.valueChanged.connect(self.worker.set_ti)
+        self.spin_td.valueChanged.connect(self.worker.set_td)
+        self.spin_max.valueChanged.connect(self.worker.set_max)
+
+        # Initialize PID settings using the spinbox signals.
+        self.spin_setpoint.setValue(self.spin_setpoint.value())
+        self.spin_kc.setValue(self.spin_kc.value())
+        self.spin_ti.setValue(self.spin_ti.value())
+        self.spin_td.setValue(self.spin_td.value())
+        self.spin_max.setValue(self.spin_max.value())
 
     def start(self):
         if self.controlling:
@@ -92,30 +104,30 @@ class WidgetPID(QtWidgets.QWidget, Ui_WidgetPID):
             self.tableWidget.setItem(i, 1, QtWidgets.QTableWidgetItem('{:0.5f} {}'.format(values[i], units[i])))
 
         self.data_x.append(self.timer.elapsed() / 1000.0)
-        self.data_y.append(values[0])
-        self.data_p.append(values[-1])
+        self.data_temp.append(values[0])
+        self.data_pid.append(values[-1])
         if self.controlling:
-            self.data_s.append(self.spin_setpoint.value())
+            self.data_set.append(self.spin_setpoint.value())
         else:
-            self.data_s.append(np.nan)
+            self.data_set.append(np.nan)
 
-        self.line_temp.set_data(self.data_x, self.data_y)
-        self.line_set.set_data(self.data_x, self.data_s)
-        self.line_pid.set_data(self.data_x, self.data_p)
+        self.line_temp.set_data(self.data_x, self.data_temp)
+        self.line_set.set_data(self.data_x, self.data_set)
+        self.line_pid.set_data(self.data_x, self.data_pid)
         self.rescale()
 
     def clear_chart(self):
         self.data_x.clear()
-        self.data_y.clear()
-        self.data_s.clear()
-        self.data_p.clear()
-        # self.timer.restart()
+        self.data_temp.clear()
+        self.data_set.clear()
+        self.data_pid.clear()
+
         self.rescale()
 
     def rescale(self):
         self.ax.relim()
-        self.ax.autoscale_view(True, True, True)
-        self.ax.autoscale(enable=True)
+        self.ax.autoscale_view(True, self.check_autox.isChecked(), self.check_autoy.isChecked())
+        #self.ax.autoscale(enable=True)
         self.canvas.draw()
         self.toolbar.update()
 
@@ -201,6 +213,7 @@ class CDAQThread(QtCore.QObject):
         # Return inputs and ouputs.
         self.updated.emit(names + ['Peltier'], values + [out], units + ['%'])
 
+    """All the slots to update de PID class."""
     @QtCore.pyqtSlot(bool)
     def toogle_pid(self, controlling):
         self.controlling = controlling
@@ -220,6 +233,10 @@ class CDAQThread(QtCore.QObject):
     @QtCore.pyqtSlot(float)
     def set_td(self, derivative_gain):
         self.pid.set_td(derivative_gain)
+
+    @QtCore.pyqtSlot(float)
+    def set_max(self, maximum):
+        self.pid.set_guard(maximum)
 
 
 if __name__ == "__main__":

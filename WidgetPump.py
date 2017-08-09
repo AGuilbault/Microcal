@@ -11,7 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_WidgetPump(object):
     def setupUi(self, WidgetPump):
         WidgetPump.setObjectName("WidgetPump")
-        WidgetPump.resize(174, 203)
+        WidgetPump.resize(167, 200)
         self.gridLayout = QtWidgets.QGridLayout(WidgetPump)
         self.gridLayout.setObjectName("gridLayout")
         self._label_1 = QtWidgets.QLabel(WidgetPump)
@@ -85,15 +85,7 @@ class Ui_WidgetPump(object):
         self.btn_infuse.setObjectName("btn_infuse")
         self.gridLayout.addWidget(self.btn_infuse, 7, 0, 1, 2)
         self.ico_state = QtWidgets.QLabel(WidgetPump)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.ico_state.sizePolicy().hasHeightForWidth())
-        self.ico_state.setSizePolicy(sizePolicy)
-        self.ico_state.setMinimumSize(QtCore.QSize(44, 37))
-        font = QtGui.QFont()
-        font.setPointSize(20)
-        self.ico_state.setFont(font)
+        self.ico_state.setMinimumSize(QtCore.QSize(32, 32))
         self.ico_state.setObjectName("ico_state")
         self.gridLayout.addWidget(self.ico_state, 5, 0, 2, 1)
         self._label_1.setBuddy(self.combo_port)
@@ -122,7 +114,6 @@ class Ui_WidgetPump(object):
         self._label_3.setText(_translate("WidgetPump", "Target:"))
         self.lbl_target.setText(_translate("WidgetPump", "NA"))
         self.btn_infuse.setText(_translate("WidgetPump", "Infuse"))
-        self.ico_state.setText(_translate("WidgetPump", "⏹"))
 
 
 if __name__ == "__main__":
