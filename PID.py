@@ -45,9 +45,10 @@ class PID:
         p = error
 
         # Integral value.
-        i = self.last_integral + (error + self.last_error) * delta_time / 2
+        i = (error + self.last_error) * delta_time / 2
         if self.Ti != 0:
             i /= self.Ti
+        i += self.last_integral
 
         # Derivative value.
         d = (error - self.last_error) * self.Td
@@ -58,8 +59,8 @@ class PID:
         pid = self.Kp * (p + i + d)
 
         # Check if value is bigger than maximum output.
-        if pid > abs(self.Guard):
-            pid = self.Guard if pid > 0 else - self.Guard
+        if abs(pid) > self.Guard:
+            pid = self.Guard if pid > 0 else -self.Guard
             # Limit integral while output is at maximum.
             i = pid / self.Kp - (p + d)
 
