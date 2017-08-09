@@ -126,7 +126,7 @@ class WidgetMain(QtWidgets.QWidget, WidgetMain.Ui_Form):
         # Append to csv file if open.
         if self.csvfile is not None and not self.csvfile.closed:
             for v in values:
-                self.csvfile.write(', {0:.3f}'.format(v))
+                self.csvfile.write(', {0:f}'.format(v))
             self.csvfile.write('\n')
             self.csvfile.flush()
 

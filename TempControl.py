@@ -16,7 +16,7 @@ class WidgetPID(QtWidgets.QWidget, Ui_WidgetPID):
         self.setupUi(self)
 
         # Create figure to display temperature.
-        self.figure = plt.figure()
+        self.figure, (self.ax, self.ax2) = plt.subplots(2, sharex=True, gridspec_kw={'height_ratios': [3, 1]})
         # Create canvas widget to display figure.
         self.canvas = FigureCanvas(self.figure)
         # Create toolbar widget.
@@ -24,9 +24,6 @@ class WidgetPID(QtWidgets.QWidget, Ui_WidgetPID):
         # Set the layout.
         self.layout_graph.insertWidget(0, self.toolbar)
         self.layout_graph.insertWidget(1, self.canvas)
-
-        # Add axis.
-        self.ax = self.figure.add_subplot(111)
 
         # Create empty data lists for graph values.
         self.data_x = list()
@@ -37,7 +34,7 @@ class WidgetPID(QtWidgets.QWidget, Ui_WidgetPID):
         # Add lines.
         self.line_temp, = self.ax.plot(self.data_x, self.data_temp, c='r', ls='-')
         self.line_set, = self.ax.plot(self.data_x, self.data_set, c='0.5', ls=':')
-        self.line_pid, = self.ax.plot(self.data_x, self.data_pid, c='g', ls='-')
+        self.line_pid, = self.ax2.plot(self.data_x, self.data_pid, c='g', ls='-')
 
         # Start a timer for graph x values.
         self.timer = QtCore.QElapsedTimer()
@@ -126,8 +123,10 @@ class WidgetPID(QtWidgets.QWidget, Ui_WidgetPID):
 
     def rescale(self):
         self.ax.relim()
-        self.ax.autoscale_view(True, self.check_autox.isChecked(), self.check_autoy.isChecked())
-        #self.ax.autoscale(enable=True)
+        self.ax.autoscale(enable=self.check_autox.isChecked(), axis='x')
+        self.ax.autoscale(enable=self.check_autoy.isChecked(), axis='y')
+        if self.check_autoy.isChecked():
+            self.ax2.set_ylim(-100, 100)
         self.canvas.draw()
         self.toolbar.update()
 
@@ -148,7 +147,7 @@ class CDAQThread(QtCore.QObject):
         self.timer.start()
 
         # Init PID.
-        self.pid = PID(timestamp=self.timer.elapsed(), maximum=60.0)
+        self.pid = PID(timestamp=self.timer.elapsed())
 
         # Load tasks from NI-MAX.
         self.task_ai = nidaqmx.system.storage.persisted_task.PersistedTask('TaskTemp').load()
