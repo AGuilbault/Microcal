@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import FuncFormatter
 import decimal
+import time
 import visa
 from PyQt5 import QtCore, QtWidgets, QtGui
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
@@ -55,9 +56,6 @@ class WidgetMain(QtWidgets.QWidget, WidgetMain.Ui_Form):
 
         # Add temperature line.
         self.line_temp, = self.ax.plot(self.data_x, self.data_y, c='b', ls='-')
-
-        self.elapsed = QtCore.QElapsedTimer()
-        self.elapsed.start()
         ''' End figure '''
 
         # Create timer.
@@ -106,7 +104,7 @@ class WidgetMain(QtWidgets.QWidget, WidgetMain.Ui_Form):
 
     def update_graph(self):
         # Append timestamp.
-        self.data_x.append(self.elapsed.elapsed() / 1000)
+        self.data_x.append(time.time() / 1000)
         # Append nVolt reading.
         self.data_y.append(self.wid_nvolt.fetch())
         # Update plot.

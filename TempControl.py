@@ -8,6 +8,8 @@ from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as Navigatio
 from PID import PID
 from WidgetPID import Ui_WidgetPID
 
+import time
+
 
 class WidgetPID(QtWidgets.QWidget, Ui_WidgetPID):
     def __init__(self):
@@ -39,10 +41,6 @@ class WidgetPID(QtWidgets.QWidget, Ui_WidgetPID):
         self.line_temp, = self.ax.plot(self.data_x, self.data_temp, c='r', ls='-')
         self.line_set, = self.ax.plot(self.data_x, self.data_set, c='0.5', ls=':')
         self.line_pid, = self.ax2.plot(self.data_x, self.data_pid, c='g', ls='-')
-
-        # Start a timer for x values.
-        self.timer = QtCore.QElapsedTimer()
-        self.timer.start()
 
         # Connect slots.
         self.btn_clear.clicked.connect(self.clear_chart)
@@ -106,7 +104,7 @@ class WidgetPID(QtWidgets.QWidget, Ui_WidgetPID):
             self.tableWidget.setItem(i, 0, QtWidgets.QTableWidgetItem(names[i]))
             self.tableWidget.setItem(i, 1, QtWidgets.QTableWidgetItem('{:0.5f} {}'.format(values[i], units[i])))
 
-        self.data_x.append(self.timer.elapsed() / 1000.0)
+        self.data_x.append(time.time())
         self.data_temp.append(values[0])
         self.data_pid.append(values[-1])
         if self.controlling:
@@ -232,6 +230,8 @@ class CDAQThread(QtCore.QObject):
     @QtCore.pyqtSlot(bool)
     def toogle_pid(self, controlling):
         self.controlling = controlling
+        if not controlling:
+            self.pid.clear(self.timer.elapsed())
 
     @QtCore.pyqtSlot(float)
     def set_point(self, set_p):
