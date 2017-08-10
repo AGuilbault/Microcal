@@ -83,24 +83,26 @@ class WidgetMain(QtWidgets.QWidget, WidgetMain.Ui_Form):
         # If file is not open.
         if self.csvfile is None or self.csvfile.closed:
             # Open file save dialog.
-            filename, ext = QtWidgets.QFileDialog.getSaveFileName(self, 'Save file', 'C:\\', 'CSV files (*.csv)')
+            filename, ext = QtWidgets.QFileDialog.getSaveFileName(self, 'Save file', self.edit_path.text() or 'C:\\', 'CSV files (*.csv)')
             # If file selected.
             if filename != '':
                 try:
                     self.csvfile = open(filename, mode='w+t')
-                    self.btn_record.setText('Stop')
-                    self.lbl_status.setText('Recording')
                     self.edit_path.setText(filename)
-                    self.ico_status.setPixmap(QtGui.QPixmap(".\\ico\\bullet_red.png"))
+
+                    self.btn_record.setText('Stop')
+                    self.lbl_state.setText('Recording')
+                    self.ico_state.setPixmap(QtGui.QPixmap(".\\ico\\bullet_red.png"))
                 except IOError as e:
                     QtWidgets.QMessageBox.critical(self, 'Error', e.strerror)
         # If file is open.
         else:
             # Close the file.
             self.csvfile.close()
+
             self.btn_record.setText('Save')
-            self.lbl_status.setText('Not recording')
-            self.ico_status.setPixmap(QtGui.QPixmap())
+            self.lbl_state.setText('Not recording')
+            self.ico_state.setPixmap(QtGui.QPixmap())
 
     def update_graph(self):
         # Append timestamp.
@@ -146,7 +148,17 @@ class WidgetMain(QtWidgets.QWidget, WidgetMain.Ui_Form):
 
 
 def format_eng(x, pos):
-    return decimal.Decimal(x).to_eng_string()
+    """Formatter for the nVoltmeter graph y axis ticks."""
+    if x == 0:
+        return '0 V'
+    if abs(x) < 1e-6:
+        return '{:g} nV'.format(x * 1e9)
+    elif abs(x) < 1e-3:
+        return '{:g} µV'.format(x * 1e6)
+    elif abs(x) < 1:
+        return '{:g} mV'.format(x * 1e3)
+    else:
+        return '{:g} V'.format(x)
 
 if __name__ == "__main__":
     import sys

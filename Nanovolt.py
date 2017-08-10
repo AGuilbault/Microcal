@@ -80,12 +80,14 @@ class WidgetNanovolt(QtWidgets.QWidget, Ui_WidgetNanovolt):
                 return np.nan
             else:
                 # Format value with units and return value.
-                if abs(value) < 0.001:
-                    self.lbl_value.setText("{:.3f}".format(value * 1000000) + ' µV')
-                elif abs(value) < 1.0:
-                    self.lbl_value.setText("{:.3f}".format(value * 1000) + ' mV')
+                if abs(value) < 1e-6:
+                    self.lbl_value.setText("{:.3f} nV".format(value * 1e9))
+                elif abs(value) < 1e-3:
+                    self.lbl_value.setText("{:.3f} µV".format(value * 1e6))
+                elif abs(value) < 1:
+                    self.lbl_value.setText("{:.3f} mv".format(value * 1e3))
                 else:
-                    self.lbl_value.setText("{:.3f}".format(value) + ' V')
+                    self.lbl_value.setText("{:.3f} V".format(value))
                 return value
 
 

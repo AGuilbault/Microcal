@@ -215,7 +215,12 @@ class CDAQThread(QtCore.QObject):
         # Write the output.
         try:
             if out is not np.nan:
-                self.task_co.write(nidaqmx.types.CtrTime(abs(out) / 100000, 0.001 - abs(out) / 100000))
+                # Write power output. (50kHz PWM)
+                high = abs(out) / 100
+                high /= 50e3
+                low = (1/50e3) - high
+                print('high: {}\tlow: {}'.format(high, low))
+                self.task_co.write(nidaqmx.types.CtrTime(high, low))
                 self.task_do.write([out > 0, out != 0])
             else:
                 # self.task_co.write(nidaqmx.types.CtrTime(0, 0.001))
