@@ -1,3 +1,7 @@
+"""
+Module controls cDAQ system and PID.
+Can be executed as standalone or imported to be used as a widget.
+"""
 import nidaqmx
 import matplotlib.pyplot as plt
 import numpy as np
@@ -12,6 +16,11 @@ import time
 
 
 class WidgetPID(QtWidgets.QWidget, Ui_WidgetPID):
+    """
+    Widget used to display cDAQ values and control the temperature PID settings. Uses CDAQThread class to control the
+    cDAQ and update the PID. UI (WidgetPID.ui) made in Qt Designer and converted using pyuic5 command.
+    """
+
     def __init__(self):
         # Initialise overloaded classes.
         super().__init__()
@@ -98,12 +107,13 @@ class WidgetPID(QtWidgets.QWidget, Ui_WidgetPID):
 
     @QtCore.pyqtSlot(list, list, list)
     def updated(self, names, values, units):
-
+        # Update table widget.
         self.tableWidget.setRowCount(len(names))
         for i in range(len(names)):
             self.tableWidget.setItem(i, 0, QtWidgets.QTableWidgetItem(names[i]))
             self.tableWidget.setItem(i, 1, QtWidgets.QTableWidgetItem('{:0.5f} {}'.format(values[i], units[i])))
 
+        # Append values.
         self.data_x.append(time.time())
         self.data_temp.append(values[0])
         self.data_pid.append(values[-1])
@@ -112,6 +122,7 @@ class WidgetPID(QtWidgets.QWidget, Ui_WidgetPID):
         else:
             self.data_set.append(np.nan)
 
+        # Update graph.
         self.line_temp.set_data(self.data_x, self.data_temp)
         self.line_set.set_data(self.data_x, self.data_set)
         self.line_pid.set_data(self.data_x, self.data_pid)
@@ -143,6 +154,10 @@ class WidgetPID(QtWidgets.QWidget, Ui_WidgetPID):
 
 
 class CDAQThread(QtCore.QObject):
+    """
+    Thread class. Used to read values from the cDAQ system and control the temperature PID.
+    """
+
     finished = QtCore.pyqtSignal()
     updated = QtCore.pyqtSignal(list, list, list)
 
@@ -191,37 +206,42 @@ class CDAQThread(QtCore.QObject):
 
     @QtCore.pyqtSlot()
     def update(self):
-        # Read the input.
+        # Read the names.
         names = self.task_ai.channel_names
 
+        # Read the units. (Big and ugly, but it works.)
         units = ['?'] * len(names)
         for i in range(len(names)):
             chan = nidaqmx._task_modules.channels.ai_channel.AIChannel(self.task_ai._handle, names[i])
             if chan.ai_meas_type == nidaqmx.constants.UsageTypeAI.TEMPERATURE_RTD and \
                     chan.ai_temp_units == nidaqmx.constants.TemperatureUnits.DEG_C:
                 units[i] = '°C'
-            elif chan.ai_meas_type == nidaqmx.constants.UsageTypeAI.VOLTAGE and \
-                    chan.ai_voltage_units == nidaqmx.constants.VoltageUnits.FROM_CUSTOM_SCALE:
-                units[i] = chan.ai_custom_scale.scaled_units
+            elif chan.ai_meas_type == nidaqmx.constants.UsageTypeAI.VOLTAGE:
+                if chan.ai_voltage_units == nidaqmx.constants.VoltageUnits.FROM_CUSTOM_SCALE:
+                    units[i] = chan.ai_custom_scale.scaled_units
+                elif chan.ai_voltage_units == nidaqmx.constants.VoltageUnits.VOLTS:
+                    units[i] = 'V'
+            elif chan.ai_meas_type == nidaqmx.constants.UsageTypeAI.CURRENT and \
+                    chan.ai_current_units == nidaqmx.constants.CurrentUnits.AMPS:
+                units[i] = 'A'
 
+        # Read the input.
         values = self.task_ai.read()
 
         # Update pid.
-        if self.controlling:
-            out = self.pid.update(values[0], self.timer.elapsed())
-        else:
-            out = np.nan
+        out = self.pid.update(values[0], self.timer.elapsed()) if self.controlling else 0
 
         # Write the output.
         try:
-            if out is not np.nan:
-                # Write power output. (50kHz PWM)
-                high = abs(out) / 100
-                high /= 50e3
+            if out != 0:
+                # HighTime = Out / (100% * 50kHz)
+                high = abs(out) / (100 * 50e3)
+                # LowTime = (1 / 50kHz) - HighTime
                 low = (1/50e3) - high
-                print('high: {}\tlow: {}'.format(high, low))
+                # Write output pwm.
                 self.task_co.write(nidaqmx.types.CtrTime(high, low))
-                self.task_do.write([out > 0, out != 0])
+                # Write direction and enable.
+                self.task_do.write([out > 0, True])
             else:
                 # self.task_co.write(nidaqmx.types.CtrTime(0, 0.001))
                 self.task_do.write([False, False])
@@ -248,10 +268,12 @@ class CDAQThread(QtCore.QObject):
 
     @QtCore.pyqtSlot(float)
     def set_ti(self, integral_gain):
+        # Convert from s to ms.
         self.pid.set_ti(integral_gain * 1000)
 
     @QtCore.pyqtSlot(float)
     def set_td(self, derivative_gain):
+        # Convert from s to ms.
         self.pid.set_td(derivative_gain * 1000)
 
     @QtCore.pyqtSlot(float)
@@ -275,7 +297,7 @@ if __name__ == "__main__":
 
     # Create timer.
     timer = QtCore.QTimer()
-    timer.setInterval(500)
+    timer.setInterval(1000)
     timer.timeout.connect(wid.worker.update)
     timer.start()
 

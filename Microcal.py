@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import FuncFormatter
-import decimal
+
 import time
 import visa
 from PyQt5 import QtCore, QtWidgets, QtGui
