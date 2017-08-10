@@ -1,4 +1,6 @@
 import matplotlib.pyplot as plt
+from matplotlib.pyplot import FuncFormatter
+import decimal
 import visa
 from PyQt5 import QtCore, QtWidgets, QtGui
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
@@ -48,6 +50,8 @@ class WidgetMain(QtWidgets.QWidget, WidgetMain.Ui_Form):
 
         # Add axis.
         self.ax = self.figure.add_subplot(111)
+        self.ax.set_title('nVoltmeter')
+        self.ax.get_yaxis().set_major_formatter(FuncFormatter(format_eng))
 
         # Add temperature line.
         self.line_temp, = self.ax.plot(self.data_x, self.data_y, c='b', ls='-')
@@ -141,6 +145,10 @@ class WidgetMain(QtWidgets.QWidget, WidgetMain.Ui_Form):
                 self.csvfile.write(', {0:f}'.format(v))
             self.csvfile.write('\n')
             self.csvfile.flush()
+
+
+def format_eng(x, pos):
+    return decimal.Decimal(x).to_eng_string()
 
 if __name__ == "__main__":
     import sys

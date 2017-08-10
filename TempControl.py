@@ -19,6 +19,8 @@ class WidgetPID(QtWidgets.QWidget, Ui_WidgetPID):
         # 2 axes with common x axis.
         # Temperature subplot 3 times bigger than output subplot.
         self.figure, (self.ax, self.ax2) = plt.subplots(2, sharex=True, gridspec_kw={'height_ratios': [3, 1]})
+        self.ax.set_ylabel('Temperature')
+        self.ax2.set_ylabel('Output')
         # Create canvas widget to display figure.
         self.canvas = FigureCanvas(self.figure)
         # Create toolbar widget.
