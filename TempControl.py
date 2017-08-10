@@ -78,11 +78,12 @@ class WidgetPID(QtWidgets.QWidget, Ui_WidgetPID):
         self.spin_max.valueChanged.connect(self.worker.set_max)
 
         # Initialize PID settings using the spinbox signals.
-        self.spin_setpoint.setValue(self.spin_setpoint.value())
-        self.spin_kc.setValue(self.spin_kc.value())
-        self.spin_ti.setValue(self.spin_ti.value())
-        self.spin_td.setValue(self.spin_td.value())
-        self.spin_max.setValue(self.spin_max.value())
+        # DO NOT set in Qt Designer, because no signal will be sent to worker class.
+        self.spin_setpoint.setValue(25)
+        self.spin_kc.setValue(20)
+        self.spin_ti.setValue(5)
+        self.spin_td.setValue(1)
+        self.spin_max.setValue(50)
 
     @QtCore.pyqtSlot()
     def start(self):
@@ -145,8 +146,7 @@ class WidgetPID(QtWidgets.QWidget, Ui_WidgetPID):
         # Autoscale axes.
         self.ax.autoscale(enable=self.check_autox.isChecked(), axis='x')
         self.ax.autoscale(enable=self.check_autoy.isChecked(), axis='y')
-        if self.check_autoy.isChecked():
-            self.ax2.set_ylim(-100, 100)
+        self.ax2.autoscale(enable=self.check_autoy.isChecked(), axis='y')
         # Redraw graph.
         self.canvas.draw()
         # Update toolbar home value.
