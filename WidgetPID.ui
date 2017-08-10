@@ -30,9 +30,6 @@
        <property name="maximum">
         <double>1000.000000000000000</double>
        </property>
-       <property name="value">
-        <double>1.000000000000000</double>
-       </property>
       </widget>
      </item>
      <item row="3" column="1">
@@ -49,9 +46,6 @@
        <property name="maximum">
         <double>1000.000000000000000</double>
        </property>
-       <property name="value">
-        <double>5.000000000000000</double>
-       </property>
       </widget>
      </item>
      <item row="5" column="1">
@@ -67,9 +61,6 @@
        </property>
        <property name="maximum">
         <double>99.900000000000006</double>
-       </property>
-       <property name="value">
-        <double>66.700000000000003</double>
        </property>
       </widget>
      </item>
@@ -105,9 +96,6 @@
        <property name="maximum">
         <double>1000.000000000000000</double>
        </property>
-       <property name="value">
-        <double>20.000000000000000</double>
-       </property>
       </widget>
      </item>
      <item row="0" column="1">
@@ -117,9 +105,6 @@
        </property>
        <property name="maximum">
         <double>100.000000000000000</double>
-       </property>
-       <property name="value">
-        <double>25.000000000000000</double>
        </property>
       </widget>
      </item>
