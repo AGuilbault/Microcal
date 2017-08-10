@@ -15,13 +15,15 @@ class WidgetPID(QtWidgets.QWidget, Ui_WidgetPID):
         super().__init__()
         self.setupUi(self)
 
-        # Create figure to display temperature.
+        # Create figure and axes.
+        # 2 axes with common x axis.
+        # Temperature subplot 3 times bigger than output subplot.
         self.figure, (self.ax, self.ax2) = plt.subplots(2, sharex=True, gridspec_kw={'height_ratios': [3, 1]})
         # Create canvas widget to display figure.
         self.canvas = FigureCanvas(self.figure)
         # Create toolbar widget.
         self.toolbar = NavigationToolbar(self.canvas, self)
-        # Set the layout.
+        # Insert in the layout.
         self.layout_graph.insertWidget(0, self.toolbar)
         self.layout_graph.insertWidget(1, self.canvas)
 
@@ -36,7 +38,7 @@ class WidgetPID(QtWidgets.QWidget, Ui_WidgetPID):
         self.line_set, = self.ax.plot(self.data_x, self.data_set, c='0.5', ls=':')
         self.line_pid, = self.ax2.plot(self.data_x, self.data_pid, c='g', ls='-')
 
-        # Start a timer for graph x values.
+        # Start a timer for x values.
         self.timer = QtCore.QElapsedTimer()
         self.timer.start()
 
@@ -55,6 +57,7 @@ class WidgetPID(QtWidgets.QWidget, Ui_WidgetPID):
         self.worker.moveToThread(self.thread)
         self.worker.updated.connect(self.updated)
         self.worker.finished.connect(self.thread.quit)
+        self.destroyed.connect(self.worker.stop)
         self.thread.started.connect(self.worker.start)
         self.thread.start()
 
@@ -72,6 +75,7 @@ class WidgetPID(QtWidgets.QWidget, Ui_WidgetPID):
         self.spin_td.setValue(self.spin_td.value())
         self.spin_max.setValue(self.spin_max.value())
 
+    @QtCore.pyqtSlot()
     def start(self):
         if self.controlling:
             # Update GUI.
@@ -113,21 +117,28 @@ class WidgetPID(QtWidgets.QWidget, Ui_WidgetPID):
         self.line_pid.set_data(self.data_x, self.data_pid)
         self.rescale()
 
+    @QtCore.pyqtSlot()
     def clear_chart(self):
+        # Clear all the graph data.
         self.data_x.clear()
         self.data_temp.clear()
         self.data_set.clear()
         self.data_pid.clear()
 
+        # Update scale.
         self.rescale()
 
     def rescale(self):
+        # Update limits.
         self.ax.relim()
+        # Autoscale axes.
         self.ax.autoscale(enable=self.check_autox.isChecked(), axis='x')
         self.ax.autoscale(enable=self.check_autoy.isChecked(), axis='y')
         if self.check_autoy.isChecked():
             self.ax2.set_ylim(-100, 100)
+        # Redraw graph.
         self.canvas.draw()
+        # Update toolbar home value.
         self.toolbar.update()
 
 
@@ -166,6 +177,9 @@ class CDAQThread(QtCore.QObject):
 
     @QtCore.pyqtSlot()
     def stop(self):
+        # Turn off Peltier.
+        self.task_do.write([False, False])
+
         # Stop tasks.
         self.task_ai.stop()
         self.task_co.stop()

@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import visa
-from PyQt5 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets, QtGui
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 
@@ -69,39 +69,36 @@ class WidgetMain(QtWidgets.QWidget, WidgetMain.Ui_Form):
         # Start timer.
         self.timer.start()
 
-        # Open file browser.
-        self.btn_browse.clicked.connect(self.browse)
         # Start or stop recording when button pushed.
         self.btn_record.clicked.connect(self.record)
+
+        self.btn_clear.clicked.connect(self.clear_chart)
 
         # Init empty csv file variable.
         self.csvfile = None
 
-    def browse(self):
-        # Open file save dialog.
-        filename, ext = QtWidgets.QFileDialog.getSaveFileName(self, 'Save file', 'C:\\', 'CSV files (*.csv)')
-        # If file selected.
-        if filename != '':
-            # Update path in text box.
-            self.edit_path.setText(filename)
-
     def record(self):
         # If file is not open.
         if self.csvfile is None or self.csvfile.closed:
-            try:
-                self.csvfile = open(self.edit_path.text(), mode='w+t')
-                self.edit_path.setEnabled(False)
-                self.btn_record.setText('Stop')
-                self.lbl_status.setText('Recording')
-            except IOError as e:
-                QtWidgets.QMessageBox.critical(self, 'Error', e.strerror)
+            # Open file save dialog.
+            filename, ext = QtWidgets.QFileDialog.getSaveFileName(self, 'Save file', 'C:\\', 'CSV files (*.csv)')
+            # If file selected.
+            if filename != '':
+                try:
+                    self.csvfile = open(filename, mode='w+t')
+                    self.btn_record.setText('Stop')
+                    self.lbl_status.setText('Recording')
+                    self.edit_path.setText(filename)
+                    self.ico_status.setPixmap(QtGui.QPixmap(".\\ico\\bullet_red.png"))
+                except IOError as e:
+                    QtWidgets.QMessageBox.critical(self, 'Error', e.strerror)
         # If file is open.
         else:
             # Close the file.
             self.csvfile.close()
-            self.edit_path.setEnabled(True)
             self.btn_record.setText('Save')
             self.lbl_status.setText('Not recording')
+            self.ico_status.setPixmap(QtGui.QPixmap())
 
     def update_graph(self):
         # Append timestamp.
@@ -110,16 +107,31 @@ class WidgetMain(QtWidgets.QWidget, WidgetMain.Ui_Form):
         self.data_y.append(self.wid_nvolt.fetch())
         # Update plot.
         self.line_temp.set_data(self.data_x, self.data_y)
-        self.ax.relim()
-        self.ax.autoscale_view(True, True, True)
-        self.ax.autoscale(enable=True)
-        self.canvas.draw()
-        self.toolbar.update()
+        self.rescale()
         # Append to csv file if open.
         if self.csvfile is not None and not self.csvfile.closed:
             self.csvfile.write('{0:.3f}, {1}'.format(self.data_x[-1], self.data_y[-1]))
             self.csvfile.flush()
-            self.lbl_status.setText((self.lbl_status.text() + '.').replace('....', ''))
+
+    @QtCore.pyqtSlot()
+    def clear_chart(self):
+        # Clear all the graph data.
+        self.data_x.clear()
+        self.data_y.clear()
+
+        # Update scale.
+        self.rescale()
+
+    def rescale(self):
+        # Update limits.
+        self.ax.relim()
+        # Autoscale axes.
+        self.ax.autoscale(enable=self.check_autox.isChecked(), axis='x')
+        self.ax.autoscale(enable=self.check_autoy.isChecked(), axis='y')
+        # Redraw graph.
+        self.canvas.draw()
+        # Update toolbar home value.
+        self.toolbar.update()
 
     @QtCore.pyqtSlot(list, list, list)
     def append_csv(self, names, values, units):

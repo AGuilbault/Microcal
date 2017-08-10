@@ -11,7 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_WidgetPID(object):
     def setupUi(self, WidgetPID):
         WidgetPID.setObjectName("WidgetPID")
-        WidgetPID.resize(598, 396)
+        WidgetPID.resize(579, 396)
         self.gridLayout = QtWidgets.QGridLayout(WidgetPID)
         self.gridLayout.setObjectName("gridLayout")
         self.formLayout = QtWidgets.QFormLayout()
@@ -120,6 +120,8 @@ class Ui_WidgetPID(object):
         self.check_autoy.setChecked(True)
         self.check_autoy.setObjectName("check_autoy")
         self.horizontalLayout.addWidget(self.check_autoy)
+        spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.horizontalLayout.addItem(spacerItem)
         self.layout_graph.addLayout(self.horizontalLayout)
         self.gridLayout.addLayout(self.layout_graph, 0, 0, 5, 1)
         self.btn_start = QtWidgets.QPushButton(WidgetPID)
