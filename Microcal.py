@@ -1,5 +1,4 @@
 import matplotlib.pyplot as plt
-from matplotlib.pyplot import FuncFormatter
 
 import time
 import visa
@@ -28,7 +27,7 @@ class WidgetMain(QtWidgets.QWidget, WidgetMain.Ui_Form):
         self.group_pump.setLayout(self.wid_pump.layout())
         self.group_nvolt.setLayout(self.wid_nvolt.layout())
 
-        # Create tabwidget
+        # Create tab widget.
         self.tab = QtWidgets.QTabWidget()
         # Add widgets to tab.
         self.tab.addTab(self, 'Main tab')
@@ -52,7 +51,7 @@ class WidgetMain(QtWidgets.QWidget, WidgetMain.Ui_Form):
         # Add axis.
         self.ax = self.figure.add_subplot(111)
         self.ax.set_title('nVoltmeter')
-        self.ax.get_yaxis().set_major_formatter(FuncFormatter(format_eng))
+        self.ax.yaxis.set_major_formatter(plt.FuncFormatter(format_eng))
 
         # Add temperature line.
         self.line_temp, = self.ax.plot(self.data_x, self.data_y, c='b', ls='-')
@@ -112,7 +111,7 @@ class WidgetMain(QtWidgets.QWidget, WidgetMain.Ui_Form):
         Also appends the time and value to the csv file if open.
         """
         # Append timestamp.
-        self.data_x.append(time.time() / 1000)
+        self.data_x.append(time.time())
         # Append nVolt reading.
         self.data_y.append(self.wid_nvolt.fetch())
         # Update plot.
@@ -142,6 +141,7 @@ class WidgetMain(QtWidgets.QWidget, WidgetMain.Ui_Form):
         self.canvas.draw()
         # Update toolbar home value.
         self.toolbar.update()
+        self.figure.tight_layout()
 
     @QtCore.pyqtSlot(list, list, list)
     def append_csv(self, names, values, units):

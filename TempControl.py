@@ -151,6 +151,7 @@ class WidgetPID(QtWidgets.QWidget, Ui_WidgetPID):
         self.canvas.draw()
         # Update toolbar home value.
         self.toolbar.update()
+        self.figure.tight_layout()
 
 
 class CDAQThread(QtCore.QObject):
