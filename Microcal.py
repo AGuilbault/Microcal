@@ -79,7 +79,7 @@ class WidgetMain(QtWidgets.QWidget, WidgetMain.Ui_Form):
         self.csvfile = None
 
     def record(self):
-        if self.csvfile is None or self.csvfile.closed:     # If file is not open.
+        if self.csvfile is None or self.csvfile.closed:     # If file is not opened.
             # Open file save dialog.
             filename, ext = QtWidgets.QFileDialog.getSaveFileName(self, 'Save file', self.edit_path.text() or 'C:\\', 'CSV files (*.csv)')
             # If file selected.
@@ -95,7 +95,7 @@ class WidgetMain(QtWidgets.QWidget, WidgetMain.Ui_Form):
                     self.ico_state.setPixmap(QtGui.QPixmap(".\\ico\\bullet_red.png"))
                 except IOError as e:
                     QtWidgets.QMessageBox.critical(self, 'Error', e.strerror)
-        else:   # If file is open.
+        else:   # If file is opened.
             # Close the file.
             self.csvfile.close()
 

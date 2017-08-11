@@ -52,7 +52,7 @@ class WidgetNanovolt(QtWidgets.QWidget, Ui_WidgetNanovolt):
 
     # Update GUI with state.
     def update_status(self):
-        # Open if not already open.
+        # Open if not already opened.
         if self.nvolt is None:
             self.btn_connect.setText('Connect')
             self.btn_connect.setEnabled(self.combo_port.currentIndex() != -1)
