@@ -65,9 +65,9 @@ class WidgetMain(QtWidgets.QWidget, WidgetMain.Ui_Form):
         # If interval changed in spin box, update timer interval.
         self.spin_interval.valueChanged.connect(self.timer.setInterval)
         # At timeout, update pid and graph.
+        self.timer.timeout.connect(self.update_graph)
         self.timer.timeout.connect(self.wid_pid.worker.update)
         self.wid_pid.worker.updated.connect(self.append_csv)
-        self.timer.timeout.connect(self.update_graph)
         # Start timer.
         self.timer.start()
 
@@ -80,31 +80,37 @@ class WidgetMain(QtWidgets.QWidget, WidgetMain.Ui_Form):
         self.csvfile = None
 
     def record(self):
-        # If file is not open.
-        if self.csvfile is None or self.csvfile.closed:
+        if self.csvfile is None or self.csvfile.closed:     # If file is not open.
             # Open file save dialog.
             filename, ext = QtWidgets.QFileDialog.getSaveFileName(self, 'Save file', self.edit_path.text() or 'C:\\', 'CSV files (*.csv)')
             # If file selected.
             if filename != '':
                 try:
                     self.csvfile = open(filename, mode='w+t')
+                    # Show path to saved file.
                     self.edit_path.setText(filename)
 
+                    # Update status.
                     self.btn_record.setText('Stop')
                     self.lbl_state.setText('Recording')
                     self.ico_state.setPixmap(QtGui.QPixmap(".\\ico\\bullet_red.png"))
                 except IOError as e:
                     QtWidgets.QMessageBox.critical(self, 'Error', e.strerror)
-        # If file is open.
-        else:
+        else:   # If file is open.
             # Close the file.
             self.csvfile.close()
 
+            # Update status.
             self.btn_record.setText('Save')
             self.lbl_state.setText('Not recording')
             self.ico_state.setPixmap(QtGui.QPixmap())
 
+    @QtCore.pyqtSlot()
     def update_graph(self):
+        """
+        Function executed periodically to read the nVoltmeter values and update the graph.
+        Also appends the time and value to the csv file if open.
+        """
         # Append timestamp.
         self.data_x.append(time.time() / 1000)
         # Append nVolt reading.
@@ -139,7 +145,12 @@ class WidgetMain(QtWidgets.QWidget, WidgetMain.Ui_Form):
 
     @QtCore.pyqtSlot(list, list, list)
     def append_csv(self, names, values, units):
-        # Append to csv file if open.
+        """
+        Slot called when cDAQThread has finished updating, to append values to the csv.
+        
+        A bit sketchy, since there is no control to synchronize it with the nVoltmeter.
+        If they desynchronize, the csv file could get mixed up.
+        """
         if self.csvfile is not None and not self.csvfile.closed:
             for v in values:
                 self.csvfile.write(', {0:f}'.format(v))
@@ -148,7 +159,9 @@ class WidgetMain(QtWidgets.QWidget, WidgetMain.Ui_Form):
 
 
 def format_eng(x, pos):
-    """Formatter for the nVoltmeter graph y axis ticks."""
+    """
+    Formatter for the nVoltmeter graph y axis ticks.
+    """
     if x == 0:
         return '0 V'
     if abs(x) < 1e-6:

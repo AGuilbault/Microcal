@@ -251,7 +251,9 @@ class CDAQThread(QtCore.QObject):
         # Return inputs and ouputs.
         self.updated.emit(names + ['Peltier'], values + [out], units + ['%'])
 
-    """All the slots to update de PID class."""
+    """
+    All the slots to update de PID class.
+    """
     @QtCore.pyqtSlot(bool)
     def toogle_pid(self, controlling):
         self.controlling = controlling

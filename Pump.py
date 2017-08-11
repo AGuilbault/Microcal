@@ -1,3 +1,7 @@
+"""
+Module controls PHD2000 pump.
+Can be executed as standalone or imported to be used as a widget.
+"""
 import serial
 from PyQt5 import QtCore, QtWidgets, QtGui
 from serial.tools import list_ports
@@ -184,6 +188,10 @@ class DialogPump(QtWidgets.QDialog, Ui_DialogPump):
 
 
 class SerialThread(QtCore.QObject):
+    """
+    Thread class. Used to control the serial port communicating with the pump.
+    """
+
     finished = QtCore.pyqtSignal()
     updateSignal = QtCore.pyqtSignal(int)
     recRatSignal = QtCore.pyqtSignal([float, int])
@@ -228,6 +236,9 @@ class SerialThread(QtCore.QObject):
     """ Infuse and stop commands """
     @QtCore.pyqtSlot()
     def send_run(self):
+        """
+        Sends run command and updates status until pump has stopped.
+        """
         self.ser.write(b'RUN\r')
         over = False
 
@@ -254,7 +265,7 @@ class SerialThread(QtCore.QObject):
                         over = True
                         in_packet = False
 
-            # Check if signals received by thread.
+            # Check if signals require processing.
             QtWidgets.QApplication.processEvents()
 
     @QtCore.pyqtSlot()
@@ -266,40 +277,48 @@ class SerialThread(QtCore.QObject):
     def send_diameter(self, diameter):
         self.ser.reset_input_buffer()
         self.ser.write('MMD{0:.05}\r'.format(diameter).encode('ascii'))
-        self.run(4)
+        self.get_answer(4)  # Wait for answer from the pump.
 
     @QtCore.pyqtSlot(float, int)
     def send_rate(self, rate, unit):
         self.ser.reset_input_buffer()
         self.ser.write('{1}{0:.05}\r'.format(rate, ('MLM', 'ULM', 'MLH', 'ULH')[unit]).encode('ascii'))
-        self.run(4)
+        self.get_answer(4)  # Wait for answer from the pump.
 
     @QtCore.pyqtSlot(float)
     def send_target(self, target):
         self.ser.reset_input_buffer()
         self.ser.write('MLT{0:.05}\r'.format(target).encode('ascii'))
-        self.run(4)
+        self.get_answer(4)  # Wait for answer from the pump.
 
     """ Get config commands """
     @QtCore.pyqtSlot()
     def get_diameter(self):
         self.ser.reset_input_buffer()   # Clear input buffer.
-        self.ser.write(b'DIA\r')    # Send request.
-        self.run(1)     # Wait for answer from the pump.
+        self.ser.write(b'DIA\r')        # Send request.
+        self.get_answer(1)              # Wait for answer from the pump.
 
     @QtCore.pyqtSlot()
     def get_rate(self):
         self.ser.reset_input_buffer()   # Clear input buffer.
-        self.ser.write(b'RAT\r')    # Send request.
-        self.run(2)     # Wait for answer from the pump.
+        self.ser.write(b'RAT\r')        # Send request.
+        self.get_answer(2)              # Wait for answer from the pump.
 
     @QtCore.pyqtSlot()
     def get_target(self):
         self.ser.reset_input_buffer()   # Clear input buffer.
-        self.ser.write(b'TAR\r')    # Send request.
-        self.run(3)     # Wait for answer from the pump.
+        self.ser.write(b'TAR\r')        # Send request.
+        self.get_answer(3)              # Wait for answer from the pump.
 
-    def run(self, requested):
+    def get_answer(self, requested):
+        """
+        Function reads the bytes until the requested answer is given.
+        
+        :param requested: Kind of answer to expect.
+            1 = Diameter
+            2 = Rate
+            3 = Target
+        """
         # Init variables.
         packet = bytearray()
         in_packet = False
@@ -339,7 +358,9 @@ class SerialThread(QtCore.QObject):
 
 
 if __name__ == "__main__":
-    """Main to run Pump in standalone."""
+    """
+    Main to run Pump in standalone.
+    """
     import sys
 
     # Define app.
