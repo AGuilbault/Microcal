@@ -64,7 +64,6 @@ class WidgetMain(QtWidgets.QWidget, WidgetMain.Ui_Form):
         # Aquisition
         self.Aquire_Status = False
         self.btn_Aquire.clicked.connect(self.aquire)
-        self.header_status = False
 
         # Initial Time.
         self.timeInit = time.time()
@@ -92,13 +91,15 @@ class WidgetMain(QtWidgets.QWidget, WidgetMain.Ui_Form):
         if self.csvfile is None or self.csvfile.closed:     # If file is not opened.
             # Open file save dialog.
             filename, ext = QtWidgets.QFileDialog.getSaveFileName(self, 'Save file', self.edit_path.text() or 'C:\\', 'CSV files (*.csv)')
+            self.header_status = False
             # If file selected.
             if filename != '':
                 try:
                     self.csvfile = open(filename, mode='w+t')
                     # Show path to saved file.
                     self.edit_path.setText(filename)
-                     # Update status.
+
+                    # Update status.
                     self.btn_record.setText('Stop')
                     self.lbl_state.setText('Recording')
                     self.ico_state.setPixmap(QtGui.QPixmap(".\\ico\\bullet_red.png"))
@@ -127,6 +128,11 @@ class WidgetMain(QtWidgets.QWidget, WidgetMain.Ui_Form):
             # Update plot.
             self.line_temp.set_data(self.data_x, self.data_y)
             self.rescale()
+
+            if self.csvfile is not None and not self.csvfile.closed and self.Aquire_Status:
+                self.csvfile.write("{},{}".format(self.data_x[-1], self.data_y[-1]))
+                self.csvfile.flush()
+
 
     @QtCore.pyqtSlot()
     def clear_chart(self):
@@ -160,15 +166,13 @@ class WidgetMain(QtWidgets.QWidget, WidgetMain.Ui_Form):
         A bit sketchy, since there is no control to synchronize it with the nVoltmeter.
         If they desynchronize, the csv file could get mixed up.
         """
-        if self.csvfile is not None and not self.csvfile.closed:
+        if self.csvfile is not None and not self.csvfile.closed and self.Aquire_Status:
             if not self.header_status:
-                self.csvfile.write("{},{}".format("Time (s)", "Value (V)"))
+                self.csvfile.write('{}, {}'.format("Time (s)", "Value (V)"))
                 for n in names:
-                    self.csvfile.write('{},'.format(n))
+                    self.csvfile.write(', {}'.format(n))
                 self.csvfile.write('\n')
                 self.header_status = True
-
-            self.csvfile.write("{},{}".format(self.data_x[-1], self.data_y[-1]))
             for v in values:
                 self.csvfile.write(', {0:f}'.format(v))
             self.csvfile.write('\n')
