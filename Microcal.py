@@ -66,7 +66,7 @@ class WidgetMain(QtWidgets.QWidget, WidgetMain.Ui_Form):
         self.btn_Aquire.clicked.connect(self.aquire)
 
         # Initial Time.
-        self.timeInit = time.time()
+        self.time_Init_nvolt = time.time()
         # Create timer.
         self.timer = QtCore.QTimer()
         # Set interval from the spin box.
@@ -76,7 +76,7 @@ class WidgetMain(QtWidgets.QWidget, WidgetMain.Ui_Form):
         # At timeout, update pid and graph.
         self.timer.timeout.connect(self.update_graph)
         self.timer.timeout.connect(self.wid_pid.worker.update)
-        self.wid_pid.worker.updated.connect(self.append_csv)
+        self.wid_pid.worker.updated.connect(self.update_DAQData)
         # Start timer.
         self.timer.start()
 
@@ -86,6 +86,13 @@ class WidgetMain(QtWidgets.QWidget, WidgetMain.Ui_Form):
 
         # Init empty csv file variable.
         self.csvfile = None
+        self.header_status = False
+
+        # Init data from DAQ
+        self.names = []
+        self.values = []
+        self.unit = []
+
 
     def record(self):
         if self.csvfile is None or self.csvfile.closed:     # If file is not opened.
@@ -122,22 +129,35 @@ class WidgetMain(QtWidgets.QWidget, WidgetMain.Ui_Form):
         """
         if self.Aquire_Status:
             # Append timestamp.
-            self.data_x.append(time.time()-self.timeInit)
+            self.data_x.append(time.time()-self.time_Init_nvolt)
             # Append nVolt reading.
             self.data_y.append(self.wid_nvolt.fetch())
             # Update plot.
             self.line_temp.set_data(self.data_x, self.data_y)
             self.rescale()
 
-            if self.csvfile is not None and not self.csvfile.closed and self.Aquire_Status:
+            if self.csvfile is not None and not self.csvfile.closed:
+                """ Header """
+                if not self.header_status:
+                    self.csvfile.write('{}, {}'.format("Time (s)", "Value (V)"))
+                    for i in len(self.names):
+                        self.csvfile.write(', {} ({})'.format(self.names[i], self.units[i]))
+                    self.csvfile.write('\n')
+                    self.header_status = True
+
+                """ Data """
                 self.csvfile.write("{},{}".format(self.data_x[-1], self.data_y[-1]))
+                self.csvfile.flush()
+                for v in self.values:
+                    self.csvfile.write(', {0:f}'.format(v))
+                self.csvfile.write('\n')
                 self.csvfile.flush()
 
 
     @QtCore.pyqtSlot()
     def clear_chart(self):
         # Reset Time axis
-        self.timeInit = time.time()
+        self.time_Init_nvolt = time.time()
 
         # Clear all the graph data.
         self.data_x.clear()
@@ -159,24 +179,14 @@ class WidgetMain(QtWidgets.QWidget, WidgetMain.Ui_Form):
         self.figure.tight_layout()
 
     @QtCore.pyqtSlot(list, list, list)
-    def append_csv(self, names, values, units):
+    def update_DAQData(self, names, values, units):
         """
-        Slot called when cDAQThread has finished updating, to append values to the csv.
-        
-        A bit sketchy, since there is no control to synchronize it with the nVoltmeter.
-        If they desynchronize, the csv file could get mixed up.
+        Slot called when cDAQThread has finished updating
         """
-        if self.csvfile is not None and not self.csvfile.closed and self.Aquire_Status:
-            if not self.header_status:
-                self.csvfile.write('{}, {}'.format("Time (s)", "Value (V)"))
-                for n in names:
-                    self.csvfile.write(', {}'.format(n))
-                self.csvfile.write('\n')
-                self.header_status = True
-            for v in values:
-                self.csvfile.write(', {0:f}'.format(v))
-            self.csvfile.write('\n')
-            self.csvfile.flush()
+        self.names = names
+        self.values = values
+        self.unit = units
+
 
     @QtCore.pyqtSlot()
     def aquire(self):

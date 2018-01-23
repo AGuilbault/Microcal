@@ -2,8 +2,10 @@
 Module controls cDAQ system and PID.
 Can be executed as standalone or imported to be used as a widget.
 """
-import nidaqmx
+import time
+
 import matplotlib.pyplot as plt
+import nidaqmx
 import numpy as np
 from PyQt5 import QtWidgets, QtCore, QtGui
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
@@ -11,8 +13,6 @@ from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as Navigatio
 
 from PID import PID
 from WidgetPID import Ui_WidgetPID
-
-import time
 
 
 class WidgetPID(QtWidgets.QWidget, Ui_WidgetPID):
@@ -42,23 +42,28 @@ class WidgetPID(QtWidgets.QWidget, Ui_WidgetPID):
 
         # Create empty data lists for graph values.
         self.data_x = list()
-        self.data_temp = list()
+        self.data_DAQ = list()
         self.data_set = list()
         self.data_pid = list()
 
         # Add lines.
-        self.line_temp, = self.ax.plot(self.data_x, self.data_temp, c='r', ls='-')
+        self.line_data, = self.ax.plot(self.data_x, self.data_DAQ, c='r', ls='-')
         self.line_set, = self.ax.plot(self.data_x, self.data_set, c='0.5', ls=':')
         self.line_pid, = self.ax2.plot(self.data_x, self.data_pid, c='g', ls='-')
+        self.active_graph = 0
 
         # Connect slots.
         self.btn_clear.clicked.connect(self.clear_chart)
         self.btn_start.clicked.connect(self.start)
+        self.tableWidget.cellClicked.connect(self.change_graph_type)
 
         # Init status.
         self.label_status.setText('Off')
         self.ico_status.setPixmap(QtGui.QPixmap())
         self.controlling = False
+
+        # Time init
+        self.time_init_PID = time.time()
 
         # Start thread.
         self.thread = QtCore.QThread()
@@ -115,16 +120,18 @@ class WidgetPID(QtWidgets.QWidget, Ui_WidgetPID):
             self.tableWidget.setItem(i, 1, QtWidgets.QTableWidgetItem('{:0.5f} {}'.format(values[i], units[i])))
 
         # Append values.
-        self.data_x.append(time.time())
-        self.data_temp.append(values[0])
-        self.data_pid.append(values[-1])
+        self.data_x.append(time.time()-self.time_init_PID)
+        for i in len(names):
+            self.data_DAQ[i].append(values[i])
+
         if self.controlling:
             self.data_set.append(self.spin_setpoint.value())
         else:
             self.data_set.append(np.nan)
 
         # Update graph.
-        self.line_temp.set_data(self.data_x, self.data_temp)
+        self.line_data.set_data(self.data_x, self.data_DAQ[self.active_graph])
+        self.ax.set_ylabel('%s' % names[self.active_graph])
         self.line_set.set_data(self.data_x, self.data_set)
         self.line_pid.set_data(self.data_x, self.data_pid)
         self.rescale()
@@ -133,12 +140,24 @@ class WidgetPID(QtWidgets.QWidget, Ui_WidgetPID):
     def clear_chart(self):
         # Clear all the graph data.
         self.data_x.clear()
-        self.data_temp.clear()
+        self.data_DAQ.clear()
         self.data_set.clear()
         self.data_pid.clear()
+        self.time_init_PID = time.time()
 
         # Update scale.
         self.rescale()
+
+    @QtCore.pyqtSlot(int, int)
+    def change_graph_type(self, row, column):
+        self.active_graph = row - 1
+
+        # Update graph.
+        self.line_data.set_data(self.data_x, self.data_DAQ[self.active_graph])
+        self.line_set.set_data(self.data_x, self.data_set)
+        self.line_pid.set_data(self.data_x, self.data_pid)
+        self.rescale()
+
 
     def rescale(self):
         # Update limits.
