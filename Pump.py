@@ -42,6 +42,7 @@ class WidgetPump(QtWidgets.QWidget, Ui_WidgetPump):
         self.s_run.connect(self.protocol.send_run)
         self.s_stp.connect(self.protocol.send_stp)
         self.g_tar.connect(self.protocol.get_target)
+        self.connect_status.setPixmap(QtGui.QPixmap(".\\ico\\WX_circle_red.png"))
 
         # Start thread.
         self.thread.start()
@@ -71,11 +72,13 @@ class WidgetPump(QtWidgets.QWidget, Ui_WidgetPump):
                 self.open.emit(port, self.combo_baud.currentText())
                 self.connected = True
                 self.g_tar.emit()
+                self.connect_status.setPixmap(QtGui.QPixmap(".\\ico\\WX_circle_green.png"))
             else:  # If not, show essor message.
                 QtWidgets.QMessageBox.critical(self, 'Error', 'No port selected.')
         else:  # If connected close.
             self.close.emit()
             self.connected = False
+            self.connect_status.setPixmap(QtGui.QPixmap(".\\ico\\WX_circle_red.png"))
 
     # Show configuration dialog.
     @QtCore.pyqtSlot()

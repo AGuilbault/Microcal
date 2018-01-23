@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>167</width>
+    <width>337</width>
     <height>200</height>
    </rect>
   </property>
@@ -186,6 +186,13 @@
        <width>32</width>
        <height>32</height>
       </size>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="0">
+    <widget class="QLabel" name="connect_status">
+     <property name="text">
+      <string/>
      </property>
     </widget>
    </item>

@@ -8,12 +8,13 @@ from DialogNanovolt import Ui_DialogNanovolt
 
 
 class WidgetNanovolt(QtWidgets.QWidget, Ui_WidgetNanovolt):
-    def __init__(self, res_man):
+    def __init__(self, res_man, btn_aquire):
         # Initialise overloaded classes.
         super().__init__()
         self.setupUi(self)
 
         self.rm = res_man
+        self.btn_aquire = btn_aquire
 
         # Init variable.
         self.nvolt = None
@@ -25,6 +26,7 @@ class WidgetNanovolt(QtWidgets.QWidget, Ui_WidgetNanovolt):
         self.btn_connect.clicked.connect(self.connect)
         self.combo_port.currentIndexChanged.connect(self.update_status)
         self.btn_config.clicked.connect(self.config)
+        self.connect_status.setPixmap(QtGui.QPixmap(".\\ico\\WX_circle_red.png"))
 
         # Update GUI.
         self.update_status()
@@ -58,6 +60,8 @@ class WidgetNanovolt(QtWidgets.QWidget, Ui_WidgetNanovolt):
             self.btn_connect.setEnabled(self.combo_port.currentIndex() != -1)
             self.combo_port.setEnabled(True)
             self.btn_config.setEnabled(False)
+            self.btn_aquire.setEnabled(False)
+            self.connect_status.setPixmap(QtGui.QPixmap(".\\ico\\WX_circle_red.png"))
 
         # Close it if open.
         else:
@@ -65,6 +69,8 @@ class WidgetNanovolt(QtWidgets.QWidget, Ui_WidgetNanovolt):
             self.btn_connect.setEnabled(True)
             self.combo_port.setEnabled(False)
             self.btn_config.setEnabled(True)
+            self.btn_aquire.setEnabled(True)
+            self.connect_status.setPixmap(QtGui.QPixmap(".\\ico\\WX_circle_green.png"))
 
     def fetch(self):
         if self.nvolt is None:

@@ -10,6 +10,7 @@ import WidgetMain
 from TempControl import WidgetPID
 from Nanovolt import WidgetNanovolt
 from Pump import WidgetPump
+from Courant import WidgetCourant
 
 
 class WidgetMain(QtWidgets.QWidget, WidgetMain.Ui_Form):
@@ -20,12 +21,14 @@ class WidgetMain(QtWidgets.QWidget, WidgetMain.Ui_Form):
 
         # Create widgets
         self.wid_pump = WidgetPump()
-        self.wid_nvolt = WidgetNanovolt(visa.ResourceManager())
-        self.wid_pid = WidgetPID()
+        self.wid_nvolt = WidgetNanovolt(visa.ResourceManager(), self.btn_Aquire)
+        self.wid_pid = WidgetPID() # ouvre la premiere fenetre
+        self.wid_courant= WidgetCourant(visa.ResourceManager())
 
         # Add widgets to main.
         self.group_pump.setLayout(self.wid_pump.layout())
         self.group_nvolt.setLayout(self.wid_nvolt.layout())
+        self.group_cSource.setLayout(self.wid_courant.layout())
 
         # Create tab widget.
         self.tab = QtWidgets.QTabWidget()
@@ -52,11 +55,19 @@ class WidgetMain(QtWidgets.QWidget, WidgetMain.Ui_Form):
         self.ax = self.figure.add_subplot(111)
         self.ax.set_title('nVoltmeter')
         self.ax.yaxis.set_major_formatter(plt.FuncFormatter(format_eng))
+        self.ax.set(xlabel = "Time (s)")
 
         # Add temperature line.
         self.line_temp, = self.ax.plot(self.data_x, self.data_y, c='b', ls='-')
         ''' End figure '''
 
+        # Aquisition
+        self.Aquire_Status = False
+        self.btn_Aquire.clicked.connect(self.aquire)
+        self.header_status = False
+
+        # Initial Time.
+        self.timeInit = time.time()
         # Create timer.
         self.timer = QtCore.QTimer()
         # Set interval from the spin box.
@@ -72,7 +83,6 @@ class WidgetMain(QtWidgets.QWidget, WidgetMain.Ui_Form):
 
         # Start or stop recording when button pushed.
         self.btn_record.clicked.connect(self.record)
-
         self.btn_clear.clicked.connect(self.clear_chart)
 
         # Init empty csv file variable.
@@ -88,8 +98,7 @@ class WidgetMain(QtWidgets.QWidget, WidgetMain.Ui_Form):
                     self.csvfile = open(filename, mode='w+t')
                     # Show path to saved file.
                     self.edit_path.setText(filename)
-
-                    # Update status.
+                     # Update status.
                     self.btn_record.setText('Stop')
                     self.lbl_state.setText('Recording')
                     self.ico_state.setPixmap(QtGui.QPixmap(".\\ico\\bullet_red.png"))
@@ -110,20 +119,20 @@ class WidgetMain(QtWidgets.QWidget, WidgetMain.Ui_Form):
         Function executed periodically to read the nVoltmeter values and update the graph.
         Also appends the time and value to the csv file if open.
         """
-        # Append timestamp.
-        self.data_x.append(time.time())
-        # Append nVolt reading.
-        self.data_y.append(self.wid_nvolt.fetch())
-        # Update plot.
-        self.line_temp.set_data(self.data_x, self.data_y)
-        self.rescale()
-        # Append to csv file if open.
-        if self.csvfile is not None and not self.csvfile.closed:
-            self.csvfile.write('{0:.3f}, {1}'.format(self.data_x[-1], self.data_y[-1]))
-            self.csvfile.flush()
+        if self.Aquire_Status:
+            # Append timestamp.
+            self.data_x.append(time.time()-self.timeInit)
+            # Append nVolt reading.
+            self.data_y.append(self.wid_nvolt.fetch())
+            # Update plot.
+            self.line_temp.set_data(self.data_x, self.data_y)
+            self.rescale()
 
     @QtCore.pyqtSlot()
     def clear_chart(self):
+        # Reset Time axis
+        self.timeInit = time.time()
+
         # Clear all the graph data.
         self.data_x.clear()
         self.data_y.clear()
@@ -152,10 +161,36 @@ class WidgetMain(QtWidgets.QWidget, WidgetMain.Ui_Form):
         If they desynchronize, the csv file could get mixed up.
         """
         if self.csvfile is not None and not self.csvfile.closed:
+            if not self.header_status:
+                self.csvfile.write("{},{}".format("Time (s)", "Value (V)"))
+                for n in names:
+                    self.csvfile.write('{},'.format(n))
+                self.csvfile.write('\n')
+                self.header_status = True
+
+            self.csvfile.write("{},{}".format(self.data_x[-1], self.data_y[-1]))
             for v in values:
                 self.csvfile.write(', {0:f}'.format(v))
             self.csvfile.write('\n')
             self.csvfile.flush()
+
+    @QtCore.pyqtSlot()
+    def aquire(self):
+        if self.Aquire_Status == False:
+            self.Aquire_Status = True
+            self.btn_Aquire.setText("Stop Aquisition")
+            self.clear_chart()
+            self.wid_nvolt.btn_connect.setEnabled(False)
+            if self.checkBox_Calib.isChecked():
+                self.wid_courant.courant.write("P0F1T4X") # P0 = mode single, F1 activates output, T4 starts the output, X is used to execute command
+
+        else:
+            self.Aquire_Status = False
+            self.btn_Aquire.setText("Start Aquisition")
+            self.wid_nvolt.btn_connect.setEnabled(True)
+
+
+
 
 
 def format_eng(x, pos):

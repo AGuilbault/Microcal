@@ -11,7 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_WidgetPump(object):
     def setupUi(self, WidgetPump):
         WidgetPump.setObjectName("WidgetPump")
-        WidgetPump.resize(167, 200)
+        WidgetPump.resize(337, 200)
         self.gridLayout = QtWidgets.QGridLayout(WidgetPump)
         self.gridLayout.setObjectName("gridLayout")
         self._label_1 = QtWidgets.QLabel(WidgetPump)
@@ -88,6 +88,10 @@ class Ui_WidgetPump(object):
         self.ico_state.setMinimumSize(QtCore.QSize(32, 32))
         self.ico_state.setObjectName("ico_state")
         self.gridLayout.addWidget(self.ico_state, 5, 0, 2, 1)
+        self.connect_status = QtWidgets.QLabel(WidgetPump)
+        self.connect_status.setText("")
+        self.connect_status.setObjectName("connect_status")
+        self.gridLayout.addWidget(self.connect_status, 2, 0, 1, 1)
         self._label_1.setBuddy(self.combo_port)
         self._label_2.setBuddy(self.combo_baud)
 
@@ -114,14 +118,4 @@ class Ui_WidgetPump(object):
         self._label_3.setText(_translate("WidgetPump", "Target:"))
         self.lbl_target.setText(_translate("WidgetPump", "NA"))
         self.btn_infuse.setText(_translate("WidgetPump", "Infuse"))
-
-
-if __name__ == "__main__":
-    import sys
-    app = QtWidgets.QApplication(sys.argv)
-    WidgetPump = QtWidgets.QWidget()
-    ui = Ui_WidgetPump()
-    ui.setupUi(WidgetPump)
-    WidgetPump.show()
-    sys.exit(app.exec_())
 
