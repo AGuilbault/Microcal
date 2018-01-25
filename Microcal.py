@@ -112,6 +112,7 @@ class WidgetMain(QtWidgets.QWidget, WidgetMain.Ui_Form):
                     self.ico_state.setPixmap(QtGui.QPixmap(".\\ico\\bullet_red.png"))
                 except IOError as e:
                     QtWidgets.QMessageBox.critical(self, 'Error', e.strerror)
+                self.time_Init_nvolt_csv = time.time()
         else:   # If file is opened.
             # Close the file.
             self.csvfile.close()
@@ -129,7 +130,7 @@ class WidgetMain(QtWidgets.QWidget, WidgetMain.Ui_Form):
         """
         if self.Aquire_Status:
             # Append timestamp.
-            self.data_x.append(time.time()-self.time_Init_nvolt)
+            self.data_x.append(time.time()-self.time_Init_nvolt_csv)
             # Append nVolt reading.
             self.data_y.append(self.wid_nvolt.fetch())
             # Update plot.
