@@ -181,8 +181,8 @@ class CDAQThread(QtCore.QObject):
     finished = QtCore.pyqtSignal()
     updated = QtCore.pyqtSignal(list, list, list)
 
-    @QtCore.pyqtSlot()
-    def start(self):
+    def __init__(self):
+        super(CDAQThread, self).__init__()
         # Init request flag.
         self.request = False
         self.controlling = False
@@ -195,6 +195,8 @@ class CDAQThread(QtCore.QObject):
         # Init PID.
         self.pid = PID(timestamp=self.timer.elapsed())
 
+    @QtCore.pyqtSlot()
+    def start(self):
         # Load tasks from NI-MAX.
         self.task_ai = nidaqmx.system.storage.persisted_task.PersistedTask('TaskTemp').load()
         self.task_co = nidaqmx.system.storage.persisted_task.PersistedTask('TaskPow').load()
