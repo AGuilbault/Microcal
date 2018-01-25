@@ -91,7 +91,7 @@ class WidgetMain(QtWidgets.QWidget, WidgetMain.Ui_Form):
         # Init data from DAQ
         self.names = []
         self.values = []
-        self.unit = []
+        self.units = []
 
 
     def record(self):
@@ -140,7 +140,7 @@ class WidgetMain(QtWidgets.QWidget, WidgetMain.Ui_Form):
                 """ Header """
                 if not self.header_status:
                     self.csvfile.write('{}, {}'.format("Time (s)", "Value (V)"))
-                    for i in len(self.names):
+                    for i in range(len(self.names)):
                         self.csvfile.write(', {} ({})'.format(self.names[i], self.units[i]))
                     self.csvfile.write('\n')
                     self.header_status = True
@@ -185,7 +185,7 @@ class WidgetMain(QtWidgets.QWidget, WidgetMain.Ui_Form):
         """
         self.names = names
         self.values = values
-        self.unit = units
+        self.units = units
 
 
     @QtCore.pyqtSlot()
