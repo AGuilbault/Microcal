@@ -48,6 +48,7 @@ class WidgetMain(QtWidgets.QWidget, WidgetMain.Ui_Form):
         self.layout_graph.insertWidget(1, self.canvas)
 
         # Create empty data lists for graph.
+        self.data_x_csv = list()
         self.data_x = list()
         self.data_y = list()
 
@@ -130,7 +131,7 @@ class WidgetMain(QtWidgets.QWidget, WidgetMain.Ui_Form):
         """
         if self.Aquire_Status:
             # Append timestamp.
-            self.data_x.append(time.time()-self.time_Init_nvolt_csv)
+            self.data_x.append(time.time()-self.time_Init_nvolt)
             # Append nVolt reading.
             self.data_y.append(self.wid_nvolt.fetch())
             # Update plot.
@@ -138,6 +139,7 @@ class WidgetMain(QtWidgets.QWidget, WidgetMain.Ui_Form):
             self.rescale()
 
             if self.csvfile is not None and not self.csvfile.closed:
+                self.data_x_csv.append(time.time() - self.time_Init_nvolt_csv)
                 """ Header """
                 if not self.header_status:
                     self.csvfile.write('{}, {}'.format("Time (s)", "Value (V)"))
