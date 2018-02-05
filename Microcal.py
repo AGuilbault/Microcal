@@ -142,9 +142,13 @@ class WidgetMain(QtWidgets.QWidget, WidgetMain.Ui_Form):
                 self.data_x_csv.append(time.time() - self.time_Init_nvolt_csv)
                 """ Header """
                 if not self.header_status:
-                    self.csvfile.write('{}, {}'.format("Time (s)", "Value (V)"))
+                    self.csvfile.write('{}, {}'.format("Time", "nVolt"))
                     for i in range(len(self.names)):
-                        self.csvfile.write(', {} ({})'.format(self.names[i], self.units[i]))
+                        self.csvfile.write(', {}'.format(self.names[i]))
+                    self.csvfile.write('\n')
+                    self.csvfile.write('{}, {}'.format("Seconds", "Volts"))
+                    for i in range(len(self.names)):
+                        self.csvfile.write(', {}'.format(self.units[i]))
                     self.csvfile.write('\n')
                     self.header_status = True
 
