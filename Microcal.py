@@ -149,7 +149,7 @@ class WidgetMain(QtWidgets.QWidget, WidgetMain.Ui_Form):
                     self.header_status = True
 
                 """ Data """
-                self.csvfile.write("{},{}".format(self.data_x[-1], self.data_y[-1]))
+                self.csvfile.write("{},{}".format(self.data_x_csv[-1], self.data_y[-1]))
                 self.csvfile.flush()
                 for v in self.values:
                     self.csvfile.write(', {0:f}'.format(v))
